@@ -1,0 +1,17 @@
+[project]
+name = "ai-it-helpdesk-copilot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "rajpatel-09", email = "rajpatel02091@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+ai-it-helpdesk-copilot = "ai_it_helpdesk_copilot:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
