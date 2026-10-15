@@ -1,0 +1,47 @@
+NovaTech Solutions
+VPN Troubleshooting Guide
+
+Document ID: IT-VPN-001
+Department: Information Technology
+Version: 1.0
+Effective Date: January 1, 2026
+
+1. Purpose
+
+This guide provides basic troubleshooting steps for employees who cannot connect to the company VPN.
+
+2. Check Internet Connection
+
+Before troubleshooting the VPN, verify that the device has a stable internet connection.
+
+3. Restart the VPN Client
+
+Close the VPN application completely and start it again.
+
+4. Verify Credentials
+
+Make sure the employee is using the correct company username and password.
+
+5. Check Multi-Factor Authentication
+
+Confirm that the required multi-factor authentication request has been approved.
+
+6. Retry the Connection
+
+After completing the previous steps, try connecting to the company VPN again.
+
+7. Create an IT Support Ticket
+
+If the VPN connection still fails after completing the troubleshooting steps, create an IT support ticket with the following information:
+
+- Employee name
+- Device name
+- Operating system
+- Error message
+- Approximate time the problem started
+
+8. Priority
+
+A VPN issue affecting a single employee should normally be treated as a standard support request.
+
+A VPN outage affecting multiple employees may require higher priority and escalation to the IT support team.

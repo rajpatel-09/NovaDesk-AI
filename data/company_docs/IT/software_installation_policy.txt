@@ -1,0 +1,26 @@
+NovaTech Solutions
+Software Installation Policy
+
+Document ID: IT-SW-001
+Department: Information Technology
+Version: 1.0
+Effective Date: January 1, 2026
+
+1. Software Approval
+
+Employees must obtain IT department approval before installing
+software on company devices.
+
+2. Installation Requests
+
+Employees must submit software installation requests through
+the IT Service Desk and include the software name and business reason.
+
+3. Security Requirements
+
+The IT team must review software for security risks and
+licensing compliance before approving installation.
+
+4. Unauthorized Software
+
+Employees must not install unapproved software on company devices.
