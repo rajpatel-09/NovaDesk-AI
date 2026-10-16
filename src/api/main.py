@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from pydantic import BaseModel         # BaseModel defines expected structure of incoming json
+from pydantic import BaseModel, field_validator         # BaseModel defines expected structure of incoming json
 from src.rag.pipeline import RAGPipeline
 
 app = FastAPI(title="NovaDesk AI API")  # Initialize the application
@@ -9,6 +9,16 @@ rag_pipeline = RAGPipeline()
 
 class QuestionRequest(BaseModel):
     question: str
+
+    @field_validator("question")        # tells Pydantic to validate the question field.
+    @classmethod
+    def validate_question(cls, value:str) -> str:
+        value=value.strip()             # removes spaces at the beginning and end.
+
+        if not value:
+            raise ValueError("Question must not be empty.")
+
+        return value
 
 # **********************************************************************************************
 

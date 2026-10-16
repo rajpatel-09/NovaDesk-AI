@@ -167,6 +167,10 @@ Completed:
 - Implemented `POST /ask` using Pydantic's `QuestionRequest` model.
 - Connected the endpoint to the existing `RAGPipeline`.
 - Successfully tested question submission and received a JSON answer.
+- Added Pydantic validation to reject empty or whitespace-only questions.
+- Verified invalid questions return HTTP 422.
+- Fixed a validator bug by raising `ValueError` instead of attempting to raise a string.
+- Retested valid questions to confirm the RAG pipeline still works.
 
 Development server:
 `uv run uvicorn src.api.main:app --reload`

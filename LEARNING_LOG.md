@@ -438,3 +438,31 @@ Both `GET /health` and `POST /ask` are implemented and tested. FastAPI can call 
 ### Next step
 
 Review request validation and error handling, then test edge cases before extending the API further.
+
+### FastAPI Validation — Empty Question Handling
+
+#### What I implemented
+
+- Added a Pydantic `field_validator` for the `question` field in `QuestionRequest`.
+- Used `strip()` to remove leading and trailing whitespace.
+- Rejected empty or whitespace-only questions with `ValueError`.
+- Verified that invalid questions return HTTP `422 Unprocessable Entity`.
+- Retested a valid question and confirmed the RAG pipeline still works.
+
+#### Bug encountered
+
+The validator initially used `raise value`, which caused a `TypeError` because Python cannot raise a regular string.
+
+I fixed it by using:
+
+`raise ValueError("Question must not be empty.")`
+
+FastAPI and Pydantic then handled the invalid input as a validation error instead of an HTTP 500 server error.
+
+#### What I learned
+
+- Validate user input before passing it to the RAG pipeline.
+- `strip()` removes whitespace from both ends of a string.
+- Python's `raise` statement must raise an exception.
+- HTTP 422 indicates that a request failed validation.
+- Test both invalid and valid requests after changing validation logic.
