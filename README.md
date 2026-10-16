@@ -211,9 +211,22 @@ Completed:
 
 ### Phase 2 — FastAPI
 
-**Status: Not started**
+**Status: In progress**
 
-Expose the existing RAG pipeline through an HTTP API without rebuilding the completed RAG components.
+Implemented and tested:
+
+- `GET /health` — checks that the API responds.
+- `POST /ask` — accepts an employee question and calls the existing RAG pipeline.
+- Pydantic request model for incoming questions.
+- Interactive API documentation at `/docs`.
+
+Run the development server from the project root:
+
+```powershell
+uv run uvicorn src.api.main:app --reload
+```
+
+Next: improve request validation and error handling, then test edge cases.
 
 ### Phase 3 — Agentic AI
 

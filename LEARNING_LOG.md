@@ -303,9 +303,56 @@ Implemented:
 
 ### Phase 2 — FastAPI
 
-**Status: Not started.**
+**Status: In progress**
 
-Planned work: expose the existing RAG pipeline through HTTP endpoints without rebuilding the completed RAG functionality.
+Implemented and tested:
+
+- `GET /health` — checks that the API responds.
+- `POST /ask` — accepts an employee question and calls the existing RAG pipeline.
+- Pydantic request model for incoming questions.
+- Interactive API documentation at `/docs`.
+
+Run the development server from the project root:
+
+```powershell
+uv run uvicorn src.api.main:app --reload
+
+### Objective
+
+Start exposing NovaDesk AI functionality through an HTTP API, building on the existing RAG pipeline.
+
+### What I implemented
+
+- Added FastAPI using `uv add "fastapi[standard]"`.
+
+- Verified the FastAPI installation.
+- Created `src/api/main.py`.
+- Created a `GET /health` endpoint.
+- Returned a JSON response containing the API status and project name.
+- Started the development server using `uv run fastapi dev src/api/main.py`.
+- Verified the health endpoint in the browser.
+- Opened FastAPI's interactive API documentation at `/docs`.
+
+### What I learned
+
+- FastAPI allows Python functions to be exposed through HTTP endpoints.
+- `@app.get("/health")` registers a GET endpoint at `/health`.
+- The endpoint returns data as a JSON response.
+- FastAPI automatically generates interactive documentation at `/docs`.
+- The development server must finish starting before the browser can connect.
+- `pyproject.toml` and `uv.lock` manage project dependencies in this `uv`-based project; a manually maintained `requirements.txt` is not necessary.
+
+### Problem encountered
+
+Initially, the browser showed `ERR_CONNECTION_REFUSED`. The server was still starting. After the terminal confirmed that application startup was complete, the health endpoint worked.
+
+### Current status
+
+The health-check endpoint is working. The RAG pipeline has not yet been connected to FastAPI.
+
+### Next step
+
+Create an API endpoint that accepts an employee question and passes it to the existing `RAGPipeline`.
 
 ### Phase 3 — Agentic AI
 
@@ -343,3 +390,51 @@ I do not need to memorize every line of code immediately. My goal is to understa
 3. Begin Phase 2: FastAPI.
 4. Integrate the existing `RAGPipeline` rather than rebuilding it.
 5. Continue learning one step at a time, testing each change before moving forward.
+
+---
+
+## Phase 2 — FastAPI: Connecting the RAG Pipeline
+
+### Objective
+
+Expose the existing NovaDesk AI RAG pipeline through an HTTP API so other applications can submit employee questions.
+
+### What I implemented
+
+- Installed FastAPI using `uv add "fastapi[standard]"`.
+- Verified FastAPI version 0.143.1.
+- Created `src/api/main.py`.
+- Implemented `GET /health` to check that the API responds.
+- Implemented `POST /ask` to accept employee questions.
+- Created a Pydantic `QuestionRequest` model for the incoming JSON request.
+- Connected `POST /ask` to the existing `RAGPipeline`.
+- Tested the endpoints using FastAPI's interactive documentation at `/docs`.
+- Successfully submitted a company-policy question and received an HTTP 200 response containing the answer.
+
+### What I learned
+
+- FastAPI exposes Python functions through HTTP endpoints.
+- GET is commonly used to retrieve information, while POST is commonly used to submit data for processing.
+- Pydantic models define and validate the expected structure of incoming request data.
+- `request.question` accesses the question provided in the JSON request body.
+- Calling `rag_pipeline.ask(request.question)` reuses the existing RAG logic.
+- FastAPI converts returned Python dictionaries into JSON responses.
+- FastAPI automatically provides interactive documentation at `/docs`.
+
+### Problem encountered and solution
+
+The command `uv run fastapi dev src/api/main.py` failed with `ModuleNotFoundError: No module named 'src'` when importing the existing RAG pipeline.
+
+Running the application from the project root with the following command worked:
+
+`uv run uvicorn src.api.main:app --reload`
+
+The server started successfully and loaded the RAG pipeline.
+
+### Current status
+
+Both `GET /health` and `POST /ask` are implemented and tested. FastAPI can call the existing RAG pipeline without rebuilding it.
+
+### Next step
+
+Review request validation and error handling, then test edge cases before extending the API further.

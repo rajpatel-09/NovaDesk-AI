@@ -19,7 +19,7 @@ The project is being built incrementally to develop practical, industry-oriented
 4. MCP
 5. Production-style improvements
 
-**Current stage:** Phase 1 — RAG core completed and working. Documentation maintenance is underway before starting Phase 2.
+**Current stage:** Phase 2 — FastAPI in progress. The initial health-check endpoint is working.
 
 ## 3. Teaching and Development Approach
 
@@ -55,7 +55,7 @@ Important existing directories and files:
 - `notebook/01_rag_fundamentals.ipynb` — RAG learning notebook
 - `src/ingestion/` — document loading, splitting, embeddings, vector store, and ingestion pipeline
 - `src/rag/` — retrieval, answer generation, pipeline, and test files
-- `src/api/` — reserved for the FastAPI phase
+- `src/api/` — FastAPI application with `GET /health` and `POST /ask` endpoints
 - `src/agent/` — reserved for Agentic AI
 - `src/graph/` — reserved for LangGraph
 - `src/mcp/` — reserved for MCP
@@ -157,9 +157,23 @@ These are known improvement areas, not reasons to rebuild the existing RAG found
 
 Document ingestion, embeddings, ChromaDB storage, retrieval, answer generation, and source reporting are implemented and have been manually tested.
 
-### Phase 2 — FastAPI: Not started
+### Phase 2 — FastAPI: In progress
 
-Next major development phase. Expose the existing RAG pipeline through an HTTP API.
+Completed:
+- Installed FastAPI using `uv add "fastapi[standard]"`.
+- Created `src/api/main.py`.
+- Implemented `GET /health` and verified it in the browser.
+- Verified FastAPI's interactive documentation at `/docs`.
+- Implemented `POST /ask` using Pydantic's `QuestionRequest` model.
+- Connected the endpoint to the existing `RAGPipeline`.
+- Successfully tested question submission and received a JSON answer.
+
+Development server:
+`uv run uvicorn src.api.main:app --reload`
+
+Note: The FastAPI CLI command did not resolve the `src` import correctly. Running the app through Uvicorn using `src.api.main:app` works.
+
+Next: Improve request validation and error handling, then test edge cases.
 
 ### Phase 3 — Agentic AI: Not started
 
