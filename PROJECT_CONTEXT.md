@@ -171,6 +171,7 @@ Completed:
 - Verified invalid questions return HTTP 422.
 - Fixed a validator bug by raising `ValueError` instead of attempting to raise a string.
 - Retested valid questions to confirm the RAG pipeline still works.
+- Verified that requests missing the required `question` field return HTTP 422.
 
 Development server:
 `uv run uvicorn src.api.main:app --reload`

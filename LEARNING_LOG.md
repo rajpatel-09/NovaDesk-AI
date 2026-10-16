@@ -448,6 +448,7 @@ Review request validation and error handling, then test edge cases before extend
 - Rejected empty or whitespace-only questions with `ValueError`.
 - Verified that invalid questions return HTTP `422 Unprocessable Entity`.
 - Retested a valid question and confirmed the RAG pipeline still works.
+- Tested a request with an empty JSON body (`{}`) and verified that FastAPI returns HTTP 422 when the required `question` field is missing.
 
 #### Bug encountered
 
@@ -466,3 +467,4 @@ FastAPI and Pydantic then handled the invalid input as a validation error instea
 - Python's `raise` statement must raise an exception.
 - HTTP 422 indicates that a request failed validation.
 - Test both invalid and valid requests after changing validation logic.
+- Pydantic automatically rejects requests that omit required model fields, even without a custom validator.
