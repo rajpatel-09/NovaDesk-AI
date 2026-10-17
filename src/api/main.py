@@ -1,8 +1,11 @@
-from fastapi import FastAPI
-from pydantic import BaseModel, field_validator         # BaseModel defines expected structure of incoming json
+import logging   # record unexpected errors
+
+from fastapi import FastAPI, HTTPException    # FastAPI creates the API application / HTTPException return a controlled HTTP error
+from pydantic import BaseModel, field_validator       # BaseModel defines expected structure of incoming json
 from src.rag.pipeline import RAGPipeline
 
 app = FastAPI(title="NovaDesk AI API")  # Initialize the application
+logger = logging.getLogger(__name__)
 
 # Create the RAG pipeline once when the API application starts.
 rag_pipeline = RAGPipeline()
@@ -44,7 +47,16 @@ def health_check():     # returns a small JSON response confirming that the API 
 
 @app.post("/ask")
 def ask_question(request:QuestionRequest):
-    answer = rag_pipeline.ask(request.question)
+
+    try:
+        answer = rag_pipeline.ask(request.question)
+
+    except Exception:
+        logger.exception("Failed to process question using RAG pipeline")
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred while processing your question.",
+        ) from None
 
     return{
         "question":request.question,

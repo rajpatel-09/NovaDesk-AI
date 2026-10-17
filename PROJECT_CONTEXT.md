@@ -172,13 +172,16 @@ Completed:
 - Fixed a validator bug by raising `ValueError` instead of attempting to raise a string.
 - Retested valid questions to confirm the RAG pipeline still works.
 - Verified that requests missing the required `question` field return HTTP 422.
+- Added logging and exception handling around the RAG pipeline call.
+- Tested the error handler using an intentional exception and verified that the API returns HTTP 500 with a generic message.
+- Restored the real RAG pipeline call and confirmed that valid questions still return HTTP 200.
 
 Development server:
 `uv run uvicorn src.api.main:app --reload`
 
 Note: The FastAPI CLI command did not resolve the `src` import correctly. Running the app through Uvicorn using `src.api.main:app` works.
 
-Next: Improve request validation and error handling, then test edge cases.
+Next: review remaining API edge cases, improve automated testing, and prepare the API for future integration with a frontend.
 
 ### Phase 3 — Agentic AI: Not started
 

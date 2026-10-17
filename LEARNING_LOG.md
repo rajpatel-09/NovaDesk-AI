@@ -468,3 +468,35 @@ FastAPI and Pydantic then handled the invalid input as a validation error instea
 - HTTP 422 indicates that a request failed validation.
 - Test both invalid and valid requests after changing validation logic.
 - Pydantic automatically rejects requests that omit required model fields, even without a custom validator.
+
+---
+
+## FastAPI Error Handling — Unexpected RAG Failures
+
+### Objective
+
+Handle unexpected errors from the RAG pipeline without exposing technical exception details in the API response.
+
+### What I implemented
+
+- Added Python logging using `logging.getLogger(__name__)`.
+- Wrapped the `rag_pipeline.ask()` call in a `try`/`except` block.
+- Used `logger.exception()` to record technical error information and the traceback.
+- Returned an HTTP 500 response with a generic error message when an unexpected exception occurs.
+- Tested the error handler by temporarily raising an intentional `RuntimeError`.
+- Verified that the API returned HTTP 500 with the generic error message.
+- Removed the temporary test error and restored the real RAG pipeline call.
+- Retested a valid company-policy question and confirmed it returned HTTP 200.
+
+### What I learned
+
+- Unexpected errors should be logged to help developers diagnose the underlying problem.
+- API responses should avoid exposing internal exception details to callers.
+- `logger.exception()` records the error and traceback when called inside an exception handler.
+- `HTTPException` lets FastAPI return a controlled HTTP error response.
+- Simulating a controlled failure is a useful way to test error-handling code.
+- After testing a failure path, restore the real implementation and retest normal behavior.
+
+### Current status
+
+The basic error-handling path has been tested. Valid questions still reach the existing RAG pipeline, and unexpected exceptions are handled with a generic HTTP 500 response.
