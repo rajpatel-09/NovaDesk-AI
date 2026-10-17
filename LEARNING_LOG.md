@@ -500,3 +500,51 @@ Handle unexpected errors from the RAG pipeline without exposing technical except
 ### Current status
 
 The basic error-handling path has been tested. Valid questions still reach the existing RAG pipeline, and unexpected exceptions are handled with a generic HTTP 500 response.
+
+---
+
+## Automated API Testing — First Test Suite
+
+### Objective
+
+Replace repeated manual checks with automated tests that verify the behavior of NovaDesk AI's FastAPI endpoints.
+
+### Tools used
+
+- `pytest` — runs the tests and reports their results.
+- `httpx` — provides the underlying HTTP client used by FastAPI's `TestClient`.
+- `fastapi.testclient.TestClient` — sends simulated requests to the application without manually starting the Uvicorn server.
+
+### What I implemented
+
+Created `tests/test_api.py` with three automated tests:
+
+1. `test_health_check` — verifies that `GET /health` returns HTTP 200 and the expected JSON response.
+2. `test_ask_rejects_blank_question` — verifies that a whitespace-only question returns HTTP 422.
+3. `test_ask_rejects_missing_question` — verifies that a request without the required `question` field returns HTTP 422.
+
+### Test results
+
+Command used:
+
+`uv run python -m pytest tests/test_api.py -v`
+
+Result: **3 tests passed.**
+
+### What I learned
+
+- Automated tests help check existing functionality after code changes.
+- `TestClient` can send requests to the FastAPI application without manually starting Uvicorn.
+- `assert` checks whether the actual result matches the expected result.
+- Tests can check both HTTP status codes and JSON response content.
+- Pydantic automatically rejects requests that omit required fields.
+- Whitespace-only questions are rejected by our custom field validator.
+- Running `pytest` directly initially caused `ModuleNotFoundError: No module named 'src'`. Running it as a Python module with `uv run python -m pytest` successfully resolved the import issue.
+
+### Current limitations
+
+The initial test suite covers the health endpoint and two invalid-question cases. Successful RAG responses and unexpected-error handling still need automated tests.
+
+### Next step
+
+Expand the test suite to cover successful `/ask` responses and unexpected errors without making tests depend on live model calls or external services.

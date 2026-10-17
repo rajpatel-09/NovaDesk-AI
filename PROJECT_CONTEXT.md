@@ -175,13 +175,14 @@ Completed:
 - Added logging and exception handling around the RAG pipeline call.
 - Tested the error handler using an intentional exception and verified that the API returns HTTP 500 with a generic message.
 - Restored the real RAG pipeline call and confirmed that valid questions still return HTTP 200.
+Next: expand automated testing to cover successful RAG responses and unexpected errors, then continue API improvements.
 
 Development server:
 `uv run uvicorn src.api.main:app --reload`
 
 Note: The FastAPI CLI command did not resolve the `src` import correctly. Running the app through Uvicorn using `src.api.main:app` works.
 
-Next: review remaining API edge cases, improve automated testing, and prepare the API for future integration with a frontend.
+Next: expand automated testing to cover successful RAG responses and unexpected errors, then continue API improvements.
 
 ### Phase 3 — Agentic AI: Not started
 
