@@ -523,6 +523,7 @@ Created `tests/test_api.py` with three automated tests:
 2. `test_ask_rejects_blank_question` — verifies that a whitespace-only question returns HTTP 422.
 3. `test_ask_rejects_missing_question` — verifies that a request without the required `question` field returns HTTP 422.
 4. Added `test_ask_returns_answer`, using a mock to return a predictable answer without calling the real LLM.
+5. Added `test_ask_handles_unexpected_error` to verify that unexpected RAG errors produce HTTP 500 with a generic error message.
 
 ### Test results
 
@@ -530,7 +531,7 @@ Command used:
 
 `uv run python -m pytest tests/test_api.py -v`
 
-Result: **4 tests passed.**
+Result: **5 tests passed.**
 
 ### What I learned
 
@@ -544,7 +545,7 @@ Result: **4 tests passed.**
 
 ### Current limitations
 
-The test suite covers the health endpoint, invalid questions, and a successful `/ask` response using a mock. Automated testing of unexpected-error handling is still pending.
+The test suite covers the health endpoint, invalid questions, a successful `/ask` response using a mock, and unexpected errors using a mock. The real RAG pipeline's answer generation is not yet covered by these automated API tests.
 
 ### Next step
 

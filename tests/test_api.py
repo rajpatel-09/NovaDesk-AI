@@ -57,5 +57,24 @@ def test_ask_returns_answer(monkeypatch):
         "answer": expected_answer,
     }
 
+def test_ask_handles_unexpected_error(monkeypatch):
+    def fake_ask(user_question: str) -> str:
+        raise RuntimeError("Intentional test failure")
+
+    monkeypatch.setattr(
+        "src.api.main.rag_pipeline.ask",
+        fake_ask,
+    )
+
+    response = client.post(
+        "/ask",
+        json={"question": "How many casual leave days do employees get?"},
+    )
+
+    assert response.status_code == 500
+    assert response.json() == {
+        "detail": "An internal error occurred while processing your question."
+    }
+
 
 # Note :: TestClient sends the request, assert checks the result, and pytest runs the test and reports whether it passed.
