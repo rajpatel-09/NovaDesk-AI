@@ -176,6 +176,7 @@ Completed:
 - Tested the error handler using an intentional exception and verified that the API returns HTTP 500 with a generic message.
 - Restored the real RAG pipeline call and confirmed that valid questions still return HTTP 200.
 Next: expand automated testing to cover successful RAG responses and unexpected errors, then continue API improvements.
+- Added an automated successful `/ask` test using a mock RAG response; all four API tests pass.
 
 Development server:
 `uv run uvicorn src.api.main:app --reload`

@@ -522,6 +522,7 @@ Created `tests/test_api.py` with three automated tests:
 1. `test_health_check` — verifies that `GET /health` returns HTTP 200 and the expected JSON response.
 2. `test_ask_rejects_blank_question` — verifies that a whitespace-only question returns HTTP 422.
 3. `test_ask_rejects_missing_question` — verifies that a request without the required `question` field returns HTTP 422.
+4. Added `test_ask_returns_answer`, using a mock to return a predictable answer without calling the real LLM.
 
 ### Test results
 
@@ -529,7 +530,7 @@ Command used:
 
 `uv run python -m pytest tests/test_api.py -v`
 
-Result: **3 tests passed.**
+Result: **4 tests passed.**
 
 ### What I learned
 
@@ -543,7 +544,7 @@ Result: **3 tests passed.**
 
 ### Current limitations
 
-The initial test suite covers the health endpoint and two invalid-question cases. Successful RAG responses and unexpected-error handling still need automated tests.
+The test suite covers the health endpoint, invalid questions, and a successful `/ask` response using a mock. Automated testing of unexpected-error handling is still pending.
 
 ### Next step
 
