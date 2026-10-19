@@ -291,3 +291,10 @@ GitHub: https://github.com/rajpatel-09/NovaDesk-AI
 - Store API keys in `.env`.
 - Keep secrets out of source code and Git commits.
 - Keep `.env` and the local `data/vector_store/` directory excluded through `.gitignore`.
+
+## Automated API Testing
+
+Run the automated test suite from the project root:
+
+```powershell
+uv run python -m pytest -v
