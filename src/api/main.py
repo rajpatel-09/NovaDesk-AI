@@ -1,14 +1,19 @@
+# manual testing
+
 import logging   # record unexpected errors
 
 from fastapi import FastAPI, HTTPException    # FastAPI creates the API application / HTTPException return a controlled HTTP error
 from pydantic import BaseModel, field_validator       # BaseModel defines expected structure of incoming json
 from src.rag.pipeline import RAGPipeline
+from functools import lru_cache
 
 app = FastAPI(title="NovaDesk AI API")  # Initialize the application
 logger = logging.getLogger(__name__)
 
-# Create the RAG pipeline once when the API application starts.
-rag_pipeline = RAGPipeline()
+# Create the RAG pipeline once when the API application starts for the first time and then reuse it on second time.
+@lru_cache(maxsize=1)    # remembers the first pipeline instance, so subsequent calls reuse it instead of creating another one.
+def get_rag_pipeline() -> RAGPipeline:
+    return RAGPipeline()
 
 class QuestionRequest(BaseModel):
     question: str
@@ -40,17 +45,14 @@ def health_check():     # returns a small JSON response confirming that the API 
 # *********************************************************************************************
 
 
-
 # ********************************************************************************************************
 
 # Previously, you asked questions by running Python commands in the VS Code terminal. Now we want another application—or a frontend—to send questions to NovaDesk AI through an API.
 
 @app.post("/ask")
 def ask_question(request:QuestionRequest):
-
     try:
-        answer = rag_pipeline.ask(request.question)
-
+        answer = get_rag_pipeline().ask(request.question)
     except Exception:
         logger.exception("Failed to process question using RAG pipeline")
         raise HTTPException(

@@ -44,7 +44,14 @@ def test_ask_returns_answer(monkeypatch):
         assert user_question == question
         return expected_answer
 
-    monkeypatch.setattr("src.api.main.rag_pipeline.ask", fake_ask)
+    class FakeRAGPipeline:
+        def ask(self, user_question: str) -> str:
+            return fake_ask(user_question)
+
+    monkeypatch.setattr(
+    "src.api.main.get_rag_pipeline",
+    lambda: FakeRAGPipeline(),
+)
 
     response = client.post(
         "/ask",
@@ -58,12 +65,13 @@ def test_ask_returns_answer(monkeypatch):
     }
 
 def test_ask_handles_unexpected_error(monkeypatch):
-    def fake_ask(user_question: str) -> str:
-        raise RuntimeError("Intentional test failure")
+    class FakeRAGPipeline:
+        def ask(self, user_question: str) -> str:
+            raise RuntimeError("Intentional test failure")
 
     monkeypatch.setattr(
-        "src.api.main.rag_pipeline.ask",
-        fake_ask,
+        "src.api.main.get_rag_pipeline",
+        lambda: FakeRAGPipeline(),
     )
 
     response = client.post(

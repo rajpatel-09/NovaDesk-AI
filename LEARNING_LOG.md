@@ -524,6 +524,8 @@ Created `tests/test_api.py` with three automated tests:
 3. `test_ask_rejects_missing_question` — verifies that a request without the required `question` field returns HTTP 422.
 4. Added `test_ask_returns_answer`, using a mock to return a predictable answer without calling the real LLM.
 5. Added `test_ask_handles_unexpected_error` to verify that unexpected RAG errors produce HTTP 500 with a generic error message.
+6. Added lazy initialization and caching for the RAG pipeline using `lru_cache`.
+7. Updated mock-based API tests to work with `get_rag_pipeline()`.
 
 ### Test results
 
@@ -531,7 +533,7 @@ Command used:
 
 `uv run python -m pytest tests/test_api.py -v`
 
-Result: **5 tests passed.**
+Result: **5 tests passed in 3.70 seconds.** The real `/ask` endpoint was also tested successfully and returned the expected casual-leave answer.
 
 ### What I learned
 

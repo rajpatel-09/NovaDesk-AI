@@ -178,6 +178,9 @@ Completed:
 Next: expand automated testing to cover successful RAG responses and unexpected errors, then continue API improvements.
 - Added automated tests for successful `/ask` responses and unexpected errors using mocked RAG behavior; all five API tests pass.
 - Added an automated test for unexpected RAG errors; verified HTTP 500 and the generic error response.
+- Added lazy initialization and caching for the RAG pipeline so it is created only when first needed.
+- Updated API tests to work with the new pipeline initialization approach.
+- Verified all five automated tests pass and the real RAG API still returns correct answers.
 
 Development server:
 `uv run uvicorn src.api.main:app --reload`
