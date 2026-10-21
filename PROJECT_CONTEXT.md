@@ -189,7 +189,7 @@ Note: The FastAPI CLI command did not resolve the `src` import correctly. Runnin
 
 Next: expand automated testing to cover successful RAG responses and unexpected errors, then continue API improvements.
 
-### Phase 3 — Agentic AI: Not started
+### Phase 3 — Agentic AI:
 
 Introduce decision-making and tool usage where appropriate.
 
