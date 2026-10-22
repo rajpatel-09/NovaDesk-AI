@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from langchain_groq import ChatGroq    
+from langchain_groq import ChatGroq
 
 class AnswerGenerator:
     def __init__(self):

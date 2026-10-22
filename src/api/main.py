@@ -1,3 +1,6 @@
+# -------- The API application --------
+# Purpose: This file creates the FastAPI application and controls how users interact with NovaDesk AI.
+
 # manual testing
 
 import logging   # record unexpected errors
@@ -42,7 +45,7 @@ def health_check():     # returns a small JSON response confirming that the API 
 
 # get usually retrieves info
 
-# *********************************************************************************************
+# ********************************************************************************************************
 
 
 # ********************************************************************************************************
@@ -66,3 +69,11 @@ def ask_question(request:QuestionRequest):
     }
 
 # POST commonly sends data for the server to process.
+
+# Note :
+
+# Lazy initialization: The real RAG pipeline isn't created when tests merely import the API.
+# Mocking: The tests that exercise /ask use a fake pipeline, so they don't need the real RAG pipeline to generate answers.
+# Caching: reuse the pipeline after creating it.
+
+

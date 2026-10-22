@@ -1,4 +1,5 @@
-# automated testing
+# ---------- The automated test file ----------
+# Purpose: This file checks whether our API behaves as expected without requiring us to test everything manually.
 
 from fastapi.testclient import TestClient
 from src.api.main import app
