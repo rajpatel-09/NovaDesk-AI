@@ -41,18 +41,14 @@ def test_ask_returns_answer(monkeypatch):
     question = "How many casual leave days do employees get?"
     expected_answer = "Employees receive 12 casual leave days per year."
 
-    def fake_ask(user_question: str) -> str:
+    def fake_ask_agent(user_question: str) -> str:
         assert user_question == question
         return expected_answer
 
-    class FakeRAGPipeline:
-        def ask(self, user_question: str) -> str:
-            return fake_ask(user_question)
-
     monkeypatch.setattr(
-    "src.api.main.get_rag_pipeline",
-    lambda: FakeRAGPipeline(),
-)
+        "src.api.main.ask_agent",
+        fake_ask_agent,
+    )
 
     response = client.post(
         "/ask",
@@ -66,13 +62,12 @@ def test_ask_returns_answer(monkeypatch):
     }
 
 def test_ask_handles_unexpected_error(monkeypatch):
-    class FakeRAGPipeline:
-        def ask(self, user_question: str) -> str:
-            raise RuntimeError("Intentional test failure")
+    def fake_ask_agent(user_question: str) -> str:
+        raise RuntimeError("Intentional test failure")
 
     monkeypatch.setattr(
-        "src.api.main.get_rag_pipeline",
-        lambda: FakeRAGPipeline(),
+        "src.api.main.ask_agent",
+        fake_ask_agent,
     )
 
     response = client.post(
@@ -84,6 +79,5 @@ def test_ask_handles_unexpected_error(monkeypatch):
     assert response.json() == {
         "detail": "An internal error occurred while processing your question."
     }
-
 
 # Note :: TestClient sends the request, assert checks the result, and pytest runs the test and reports whether it passed.

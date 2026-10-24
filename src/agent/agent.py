@@ -13,6 +13,7 @@ def get_agent():
         model=llm,
         tools=[search_company_docs],
         system_prompt=(
+            # agent role and expected behaviour
             "You are NovaDesk, an IT helpdesk assistant. "
             "For questions about company policies or IT procedures, "
             "use the search_company_docs tool. "

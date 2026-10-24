@@ -7,16 +7,10 @@ import logging   # record unexpected errors
 
 from fastapi import FastAPI, HTTPException    # FastAPI creates the API application / HTTPException return a controlled HTTP error
 from pydantic import BaseModel, field_validator       # BaseModel defines expected structure of incoming json
-from src.rag.pipeline import RAGPipeline
-from functools import lru_cache
+from src.agent.agent import ask_agent
 
 app = FastAPI(title="NovaDesk AI API")  # Initialize the application
 logger = logging.getLogger(__name__)
-
-# Create the RAG pipeline once when the API application starts for the first time and then reuse it on second time.
-@lru_cache(maxsize=1)    # remembers the first pipeline instance, so subsequent calls reuse it instead of creating another one.
-def get_rag_pipeline() -> RAGPipeline:
-    return RAGPipeline()
 
 class QuestionRequest(BaseModel):
     question: str
@@ -55,9 +49,9 @@ def health_check():     # returns a small JSON response confirming that the API 
 @app.post("/ask")
 def ask_question(request:QuestionRequest):
     try:
-        answer = get_rag_pipeline().ask(request.question)
+        answer = ask_agent(request.question)
     except Exception:
-        logger.exception("Failed to process question using RAG pipeline")
+        logger.exception("Failed to process question using agent")
         raise HTTPException(
             status_code=500,
             detail="An internal error occurred while processing your question.",
@@ -72,8 +66,6 @@ def ask_question(request:QuestionRequest):
 
 # Note :
 
-# Lazy initialization: The real RAG pipeline isn't created when tests merely import the API.
-# Mocking: The tests that exercise /ask use a fake pipeline, so they don't need the real RAG pipeline to generate answers.
-# Caching: reuse the pipeline after creating it.
-
-
+# Lazy initialization: The agent and RAG pipeline are initialized when needed.
+# Mocking: API tests replace ask_agent with a predictable test function.
+# Caching: get_agent and get_rag_pipeline reuse their initialized components.

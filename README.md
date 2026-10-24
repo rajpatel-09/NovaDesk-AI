@@ -1,22 +1,22 @@
 # NovaDesk AI
 
-**AI-powered Internal IT Helpdesk Copilot**
+**AI-Powered Internal IT Helpdesk Copilot**
 
-NovaDesk AI is an AI-powered internal IT helpdesk assistant that answers employee questions using company documentation. It combines Retrieval-Augmented Generation (RAG), a FastAPI backend, and an initial LangChain agent with a company-document search tool.
+NovaDesk AI is an AI-powered internal IT helpdesk assistant that answers employee questions using company documentation. It combines Retrieval-Augmented Generation (RAG), a FastAPI backend, and a LangChain agent that can decide when to use a company-document search tool.
 
 This is an internship-oriented AI engineering project built incrementally, with an emphasis on understanding, testing, and implementing realistic software components.
 
 ## Project Objectives
 
 - Answer employee questions using company documentation.
-- Retrieve relevant information using semantic search.
+- Retrieve relevant information through semantic search.
 - Generate answers grounded in retrieved context.
-- Report the source documents used to support answers.
-- Expose the RAG pipeline through a FastAPI backend.
+- Report source documents used to support answers.
+- Expose the application through a FastAPI backend.
 - Introduce agentic decision-making and tool usage.
 - Orchestrate multi-step workflows using LangGraph.
 - Integrate tools through the Model Context Protocol (MCP).
-- Improve testing, logging, error handling, configuration, and security.
+- Improve testing, logging, error handling, configuration, security, and maintainability.
 
 ## Current Features
 
@@ -36,25 +36,30 @@ This is an internship-oriented AI engineering project built incrementally, with 
 ### FastAPI
 
 - `GET /health` to check API availability.
-- `POST /ask` to submit employee questions to the RAG pipeline.
+- `POST /ask` to submit employee questions to the agent.
 - Pydantic validation for incoming questions.
-- Logging and handling of unexpected pipeline errors.
-- Lazy initialization and caching of the RAG pipeline.
-- Five automated API tests covering health checks, request validation, successful responses with mocked RAG behavior, and error handling.
+- Logging and handling of unexpected errors.
+- Lazy initialization and caching of the agent and RAG pipeline.
+- Five automated API tests covering health checks, request validation, mocked successful responses, and error handling.
 
-### Initial Agentic AI Implementation
+### Agentic AI
 
 - LangChain agent created using `create_agent`.
-- `search_company_docs` tool connected to the existing RAG pipeline.
+- Agent configured with an LLM, system instructions, and the `search_company_docs` tool.
+- Agent decides when to search company documents.
+- Tool connected to the existing RAG pipeline.
 - Clarifying questions for vague requests.
 - Instructions to avoid inventing unsupported company-specific facts.
-- Manual testing of relevant questions, vague requests, and unsupported questions.
+- Integration with FastAPI's `POST /ask` endpoint.
+- Manual verification of relevant questions, vague requests, and unsupported questions.
 
-**Current limitation:** The agent has been tested separately and is not yet integrated into the FastAPI `/ask` endpoint.
+**Current limitation:** The agent and tool behavior have been manually tested, but dedicated automated tests for agent decision-making and tool invocation have not yet been added.
 
 ## Architecture
 
 ### RAG Workflow
+
+The RAG pipeline can be used independently to retrieve company information and generate answers.
 
 ```text
 Employee Question
@@ -81,12 +86,20 @@ ChatGroq Answer Generator
 Answer + Source Documents
 ```
 
-The retriever uses an initial relevance threshold of `0.25` and a default `top_k` of 3. These settings are starting points and require evaluation with more questions.
+The retriever uses an initial relevance threshold of `0.25` and a default `top_k` of 3. These settings are starting points and require evaluation against a wider range of questions.
 
-### Agent Workflow
+### Agentic AI Workflow
+
+The FastAPI endpoint now uses the agent as the main entry point for answering employee questions.
 
 ```text
 Employee Question
+       |
+       v
+FastAPI POST /ask
+       |
+       v
+ask_agent(question)
        |
        v
 LangChain Agent
@@ -94,20 +107,31 @@ LangChain Agent
        v
 Decide Whether to Use a Tool
        |
-       v
-search_company_docs
+       +---------------------------+
+       |                           |
+       v                           v
+Need Company Information?     Request Is Vague
+       |                           |
+       v                           v
+search_company_docs           Ask for Clarification
        |
        v
 Existing RAGPipeline
        |
        v
-Tool Result
+Retrieved Information
+and RAG-Generated Answer
        |
        v
-Agent Response
+Agent Produces Final Response
+       |
+       v
+FastAPI Returns Response
 ```
 
-The agent can ask a clarifying question when a request is too vague to understand. For company-specific questions, it can use the document-search tool to obtain supporting information.
+The agent can ask a clarifying question without calling the tool when a request is too vague. For company-specific questions, it can use `search_company_docs` to obtain information from the existing RAG pipeline.
+
+The current tool invokes `RAGPipeline.ask()`, which performs retrieval and answer generation. The agent then uses the tool result to produce its final response.
 
 ## Technology Stack
 
@@ -117,7 +141,7 @@ The agent can ask a clarifying question when a request is too vague to understan
 | `uv` | Dependency and project management |
 | LangChain | LLM integration and agent development |
 | ChatGroq | Language-model integration |
-| `openai/gpt-oss-20b` | Configured answer-generation model |
+| `openai/gpt-oss-20b` | Configured language model |
 | Hugging Face Sentence Transformers | Embedding generation |
 | `sentence-transformers/all-MiniLM-L6-v2` | Embedding model |
 | ChromaDB | Vector storage and similarity search |
@@ -158,7 +182,7 @@ NovaDesk-AI/
 │   │   ├── HR/
 │   │   ├── IT/
 │   │   └── SECURITY/
-│   └── vector_store/             # Local ChromaDB data; ignored by Git
+│   └── vector_store/              # Local ChromaDB data; ignored by Git
 ├── notebook/
 │   └── 01_rag_fundamentals.ipynb
 ├── src/
@@ -180,13 +204,13 @@ NovaDesk-AI/
 │   ├── agent/
 │   │   ├── agent.py
 │   │   └── tools.py
-│   ├── graph/                    # Reserved for LangGraph
-│   ├── mcp/                      # Reserved for MCP
+│   ├── graph/                     # Reserved for LangGraph
+│   ├── mcp/                       # Reserved for MCP
 │   ├── config/
 │   └── novadesk_ai/
 ├── tests/
 │   └── test_api.py
-├── .env                          # Local secrets; not committed
+├── .env                           # Local secrets; not committed
 ├── .gitignore
 ├── LEARNING_LOG.md
 ├── PROJECT_CONTEXT.md
@@ -240,7 +264,7 @@ uv run python -m src.ingestion.pipeline
 
 This loads company documents, creates chunks and embeddings, and adds previously unseen source documents to the persistent ChromaDB collection according to the current ingestion logic.
 
-### 5. Ask a RAG question
+### 5. Ask a RAG question directly
 
 Run:
 
@@ -248,7 +272,7 @@ Run:
 uv run python -c "from src.rag.pipeline import RAGPipeline; print(RAGPipeline().ask('How many casual leave days do employees get?'))"
 ```
 
-The pipeline returns an answer followed by source-document paths when relevant documents are retrieved.
+The pipeline returns an answer and reports source-document paths when relevant documents are retrieved.
 
 ### 6. Run the FastAPI application
 
@@ -258,15 +282,11 @@ Start the development server from the project root:
 uv run uvicorn src.api.main:app --reload
 ```
 
-The server runs locally at:
+The server runs locally at `http://127.0.0.1:8000`.
 
-`http://127.0.0.1:8000`
+Open the interactive API documentation at `http://127.0.0.1:8000/docs`.
 
-Open the interactive API documentation at:
-
-`http://127.0.0.1:8000/docs`
-
-The available endpoints are:
+Available endpoints:
 
 - `GET /health`
 - `POST /ask`
@@ -281,9 +301,11 @@ Invoke-RestMethod `
   -Body '{"question":"How can I troubleshoot VPN connection problems?"}'
 ```
 
-### 7. Test the initial agent
+The `/ask` endpoint invokes the agent, which decides whether to use the company-document search tool before producing the response.
 
-The agent can currently be tested separately from the API:
+### 7. Test the agent directly
+
+Run:
 
 ```powershell
 uv run python -c "from src.agent.agent import ask_agent; print(ask_agent('How can I troubleshoot VPN connection problems?'))"
@@ -296,24 +318,34 @@ This calls the existing agent and allows it to use `search_company_docs` when ap
 Run the automated tests from the project root:
 
 ```powershell
-uv run python -m pytest
+uv run python -m pytest -v
 ```
 
-The latest recorded run reported **5 passed**.
+The latest verified run reported **5 passed in 1.48 seconds**.
 
-The automated tests are in `tests/test_api.py`. They cover API behavior, including request validation, mocked successful RAG responses, and unexpected errors.
+The automated tests are located in `tests/test_api.py`. They cover:
+
+- API health checks.
+- Rejection of blank questions.
+- Rejection of missing questions.
+- Successful responses using a mocked agent.
+- Handling of unexpected errors.
+
+The successful-response and error-handling tests mock `ask_agent`. They verify API behavior without needing to call the real LLM or document retrieval system.
 
 The files `src/rag/test_pipeline.py` and `src/rag/test_retriever.py` are manual test scripts rather than automated pytest test cases.
 
-Manual tests have also verified:
+### Manual Verification
 
-- Relevant VPN troubleshooting questions.
-- Vague requests that need clarification.
-- Unsupported FIFA ticket reimbursement questions.
-- Tool invocation by the agent.
-- Relevance filtering for selected supported and unsupported questions.
+The integrated agent was tested through FastAPI's Swagger UI using three scenarios:
 
-Automated testing for retrieval and agent behavior remains future work.
+1. **Supported company-policy question:** The question about casual leave returned 12 days per year and cited the leave policy.
+2. **Vague request:** The question "It does not work. Help me." resulted in a request for clarification.
+3. **Unsupported policy question:** The question about FIFA World Cup ticket reimbursement did not result in an invented company policy.
+
+All three scenarios returned successful HTTP responses. Additional manual tests have verified tool invocation, VPN troubleshooting, and relevance filtering for selected supported and unsupported questions.
+
+Automated testing for agent decision-making, tool invocation, and retrieval behavior remains future work.
 
 ## Current Project Status
 
@@ -338,17 +370,17 @@ Implemented:
 Implemented:
 
 - `GET /health` and `POST /ask`.
-- Integration with the existing RAG pipeline.
-- Pydantic validation.
+- Pydantic request validation.
 - Error handling and logging.
 - Lazy initialization and caching.
 - Five passing automated API tests.
+- Integration of the `/ask` endpoint with the agent.
 
-Remaining work includes expanded testing, configuration improvements, and integration with the agent.
+Remaining work includes expanded testing, configuration improvements, and other production-readiness improvements.
 
 ### Phase 3 — Agentic AI
 
-**Status: Initial implementation completed; further development ongoing.**
+**Status: Initial implementation and FastAPI integration completed; further development ongoing.**
 
 Implemented:
 
@@ -356,27 +388,29 @@ Implemented:
 - `search_company_docs` tool.
 - Connection to the existing RAG pipeline.
 - Clarification for vague requests.
-- Fallback behavior for unsupported requests.
+- Instructions to avoid unsupported company-specific claims.
+- Integration with FastAPI's `/ask` endpoint.
+- Manual verification of supported, vague, and unsupported questions.
 
-Remaining work includes automated agent tests, broader behavior evaluation, and API integration.
+Remaining work includes dedicated automated agent/tool tests, broader behavior evaluation, and possible architecture improvements to the tool's retrieval and answer-generation responsibilities.
 
 ### Phase 4 — LangGraph
 
 **Status: Not started.**
 
-Planned: orchestrate multi-step workflows using state, nodes, edges, and conditional routing.
+Planned: Orchestrate multi-step workflows using state, nodes, edges, and conditional routing.
 
 ### Phase 5 — MCP
 
 **Status: Not started.**
 
-Planned: expose and use support-related tools through the Model Context Protocol.
+Planned: Expose and use support-related tools through the Model Context Protocol.
 
 ### Phase 6 — Production Improvements
 
 **Status: Not started.**
 
-Planned: improve automated testing, configuration, logging, error handling, security, maintainability, and deployment readiness.
+Planned: Improve automated testing, configuration, logging, error handling, security, maintainability, monitoring, and deployment readiness.
 
 ## Known Limitations
 
@@ -384,9 +418,9 @@ Planned: improve automated testing, configuration, logging, error handling, secu
 - Similarity scores do not guarantee that retrieved chunks contain all the information needed to answer a question.
 - Only a limited set of supported and unsupported questions has been manually tested.
 - The ingestion logic does not automatically refresh chunks when existing documents change.
-- Agent behavior does not yet have a dedicated automated test suite.
-- The initial agent is not yet integrated into the FastAPI `/ask` endpoint.
-- Production security, authentication, authorization, monitoring, and deployment considerations remain to be addressed.
+- The agent's document-search tool currently runs the full RAG question-answering pipeline before returning its result to the agent.
+- Agent decision-making and tool invocation do not yet have a dedicated automated test suite.
+- Authentication, authorization, monitoring, and production deployment considerations remain to be addressed.
 
 ## Learning Approach
 
@@ -413,10 +447,6 @@ The goal is to understand why each component exists, explain how it works, and g
 ## Repository
 
 GitHub: https://github.com/rajpatel-09/NovaDesk-AI
-
-Latest recorded project commit:
-
-`b634858` — `feat: add agent and relevance filtering`
 
 ## Security
 

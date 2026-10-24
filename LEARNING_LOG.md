@@ -2,7 +2,7 @@
 
 This file records my learning, implementation, debugging, testing, and progress throughout the NovaDesk AI project.
 
-**Last updated:** October 22, 2026
+**Last updated:** October 24, 2026
 
 ---
 
@@ -251,7 +251,7 @@ Expose the existing RAG pipeline through an HTTP API so another application can 
 - Implemented `GET /health` to check that the API responds.
 - Implemented `POST /ask` to accept employee questions.
 - Created a Pydantic `QuestionRequest` model for incoming requests.
-- Connected `POST /ask` to the existing `RAGPipeline`.
+- Initially connected `POST /ask` directly to the existing `RAGPipeline`.
 - Tested the endpoints through FastAPI's interactive documentation at `/docs`.
 - Confirmed that a company-policy question could be submitted and an answer returned.
 
@@ -277,9 +277,17 @@ Running the application from the project root with this command worked:
 uv run uvicorn src.api.main:app --reload
 ```
 
-### Current status
+### How the API evolved
 
-The `GET /health` and `POST /ask` endpoints are implemented. FastAPI can call the existing RAG pipeline without rebuilding it.
+The first implementation called the RAG pipeline directly:
+
+`get_rag_pipeline().ask(request.question)`
+
+After implementing the agent, I changed the endpoint to call:
+
+`ask_agent(request.question)`
+
+This allowed the API to use the agent's decision-making and tool-calling workflow rather than bypassing the agent.
 
 ---
 
@@ -287,7 +295,7 @@ The `GET /health` and `POST /ask` endpoints are implemented. FastAPI can call th
 
 ### Objective
 
-Reject invalid employee questions before passing them to the RAG pipeline.
+Reject invalid employee questions before passing them to the application logic.
 
 ### What I implemented
 
@@ -309,7 +317,7 @@ Pydantic then handled the invalid input as a validation error rather than an HTT
 
 ### What I learned
 
-- Validate user input before passing it to the RAG pipeline.
+- Validate user input before passing it to the application logic.
 - `strip()` removes whitespace from both ends of a string.
 - Python's `raise` statement must raise an exception.
 - HTTP 422 indicates that a request failed validation.
@@ -318,21 +326,21 @@ Pydantic then handled the invalid input as a validation error rather than an HTT
 
 ---
 
-## FastAPI Error Handling — Unexpected RAG Failures
+## FastAPI Error Handling — Unexpected Failures
 
 ### Objective
 
-Handle unexpected errors from the RAG pipeline without exposing internal exception details in API responses.
+Handle unexpected errors without exposing internal exception details in API responses.
 
 ### What I implemented
 
 - Added logging using Python's `logging` module.
-- Wrapped the RAG pipeline call in a `try`/`except` block.
+- Wrapped the request-processing call in a `try`/`except` block.
 - Used `logger.exception()` to record technical error information and the traceback.
 - Returned an HTTP 500 response with a generic error message for unexpected exceptions.
 - Temporarily introduced an intentional exception to test the error-handling path.
 - Verified the API returned HTTP 500 and the generic error response.
-- Restored the real RAG pipeline call and confirmed that valid questions still returned HTTP 200.
+- Updated the error log message to reflect that the endpoint now processes questions through the agent.
 
 ### What I learned
 
@@ -364,24 +372,31 @@ Created `tests/test_api.py` with five automated tests covering:
 1. `GET /health` returns HTTP 200 and the expected JSON response.
 2. An empty or whitespace-only question returns HTTP 422.
 3. A request missing the required question field returns HTTP 422.
-4. A successful `/ask` response using mocked RAG behavior.
-5. An unexpected RAG exception returns HTTP 500 with a generic error response.
+4. A successful `/ask` response using a mocked processing function.
+5. An unexpected exception returns HTTP 500 with a generic error response.
 
-I also implemented lazy initialization and caching for the RAG pipeline so that importing the API during tests does not immediately initialize the full model and retrieval stack.
+The tests initially mocked the RAG pipeline. After integrating the agent into FastAPI, I updated the successful-response and error-handling tests to mock `ask_agent` instead.
 
-The API tests were updated to mock the pipeline using the lazy initialization approach.
+This ensures the tests target the function the API actually calls, without making the automated suite depend on live LLM calls.
+
+### Lazy initialization
+
+I implemented lazy initialization and caching so that importing the API during tests does not immediately initialize the full model and retrieval stack.
+
+The agent and RAG pipeline also use caching to reuse their configured instances.
 
 ### Test command
 
 ```powershell
-uv run python -m pytest
+$env:UV_PROJECT_ENVIRONMENT = "$env:LOCALAPPDATA\uv-envs\novadesk-ai"
+uv run python -m pytest -v
 ```
 
-### Test results
+### Latest test results
 
-The latest recorded test run after the relevance-filtering change reported:
+The latest verified run after the agent integration and cleanup reported:
 
-**5 passed**
+**5 passed in 1.48 seconds.**
 
 ### What I learned
 
@@ -389,17 +404,20 @@ The latest recorded test run after the relevance-filtering change reported:
 - `TestClient` tests FastAPI endpoints without manually starting the server.
 - Assertions compare actual results with expected behavior.
 - Tests can check both HTTP status codes and JSON content.
-- Mocking allows API behavior to be tested without making every test depend on live model calls.
+- Mocking allows API behavior to be tested without every test depending on live model calls.
 - Lazy initialization prevents unnecessary setup during module imports.
 - Running pytest as a Python module with `uv run python -m pytest` resolves the import-path issue encountered when running pytest directly.
+- When an endpoint changes its internal dependency, its mocks and tests must be updated accordingly.
 
 ### Current limitation
 
-The automated API tests use mocked RAG behavior for the successful response and error-handling cases. The real RAG pipeline has been tested manually, but its full retrieval and generation behavior is not covered by these five automated API tests.
+The automated API tests mock `ask_agent` for successful processing and error handling. They verify the API layer but do not directly test the real agent's decision-making, tool invocation, or complete RAG retrieval and generation flow.
+
+The real agent workflow is currently verified through manual API tests. Dedicated automated tests for agent behavior remain future work.
 
 ---
 
-## Recent Milestone — Environment Recovery
+## Environment Recovery
 
 **Date:** October 22, 2026
 
@@ -423,10 +441,9 @@ Restarting Windows did not resolve all the installation issues.
 - Added `langchain>=1.4.7` to `pyproject.toml` using `uv add langchain --no-sync`.
 - Updated the project lockfile.
 - Left the original `.venv` untouched.
-- Deactivated the original environment.
 - Created a separate Python 3.12 environment at `%LOCALAPPDATA%\uv-envs\novadesk-ai`.
 - Set `UV_PROJECT_ENVIRONMENT` in the active PowerShell session to direct `uv` to the new environment.
-- Successfully installed 135 packages using:
+- Successfully installed dependencies using:
 
 ```powershell
 uv sync --link-mode=copy
@@ -486,7 +503,7 @@ Observed result:
 - The tool retrieved information from the VPN troubleshooting guide.
 - The agent used the tool result to produce an answer.
 
-I inspected the agent's message sequence and observed a `ToolMessage` named `search_company_docs`, confirming that the tool was called.
+I inspected the agent's message sequence and observed a `ToolMessage` associated with `search_company_docs`, confirming that the tool was called.
 
 ### Test 2 — Vague question
 
@@ -522,10 +539,6 @@ Initially, the retriever also listed unrelated company documents. This exposed a
 - A vague question may require clarification rather than immediate retrieval.
 - Agent instructions guide behavior, but the behavior must be tested.
 - Inspecting `HumanMessage`, `AIMessage`, and `ToolMessage` objects helps reveal the agent's execution path.
-
-### Current status
-
-The initial agent implementation passed the documented manual checks. Automated agent tests and integration into the FastAPI `/ask` endpoint remain future work.
 
 ---
 
@@ -599,6 +612,163 @@ The threshold has been manually tested with selected questions. Additional exper
 
 ---
 
+## Latest Milestone — Agentic AI Integrated into FastAPI
+
+**Date:** October 24, 2026
+
+### Objective
+
+Connect the existing LangChain agent to the real FastAPI `/ask` endpoint and verify that supported questions, vague requests, and unsupported questions behave as expected.
+
+### Why this change was needed
+
+Previously, `POST /ask` called the RAG pipeline directly. The agent had been implemented and tested separately, but the API did not yet use its decision-making and tool-calling capabilities.
+
+Changing the endpoint to call `ask_agent()` allows requests through FastAPI to use the agent.
+
+### What I changed
+
+**In `src/api/main.py`:**
+
+- Imported `ask_agent` from `src.agent.agent`.
+- Replaced the direct RAG pipeline call with `ask_agent(request.question)`.
+- Removed the API-level lazy RAG pipeline factory because the agent and tool now manage their own cached components.
+- Updated the exception log message to refer to processing a question through the agent.
+
+**In `tests/test_api.py`:**
+
+- Updated the successful-response test to mock `src.api.main.ask_agent`.
+- Updated the unexpected-error test to mock `src.api.main.ask_agent`.
+- Preserved the five existing API test cases.
+
+**In the agent files:**
+
+- Kept the existing configured agent, system instructions, company-document search tool, and cached RAG pipeline.
+- Added explanatory comments while reviewing the code.
+- Preserved the existing RAG behavior instead of rebuilding it.
+
+### Manual integration test results
+
+I started the API using:
+
+```powershell
+$env:UV_PROJECT_ENVIRONMENT = "$env:LOCALAPPDATA\uv-envs\novadesk-ai"
+uv run uvicorn src.api.main:app --reload
+```
+
+I then tested three requests through FastAPI's Swagger UI.
+
+**Test 1 — Supported company-policy question**
+
+Question:
+
+> How many casual leave days do employees get?
+
+Observed result: The endpoint returned the correct answer of 12 days per year and cited the leave policy.
+
+**Test 2 — Vague question**
+
+Question:
+
+> It does not work. Help me.
+
+Observed result: The agent asked for clarification rather than searching immediately.
+
+**Test 3 — Unsupported company policy**
+
+Question:
+
+> What is NovaTech Solutions policy on reimbursing FIFA World Cup tickets?
+
+Observed result: The agent acknowledged that the available company documents did not provide the answer rather than inventing a reimbursement policy.
+
+All three requests returned HTTP `200 OK`, and the observed responses matched the expected behavior.
+
+### Automated verification
+
+After updating the endpoint and test mocks, I ran:
+
+```powershell
+uv run python -m pytest -v
+```
+
+The latest verified output reported:
+
+**5 passed in 1.48 seconds.**
+
+I also ran:
+
+```powershell
+git diff --check
+```
+
+It returned no whitespace errors.
+
+I reviewed the changed files and removed unrelated test-command comments from `src/ingestion/pipeline.py`. I also corrected the API exception log message to refer to the agent.
+
+### What I learned
+
+- An API endpoint should call the correct application entry point for the intended workflow.
+- The agent and the RAG pipeline have different responsibilities.
+- The agent decides whether to use a tool; the tool delegates to the RAG pipeline when called.
+- The RAG pipeline retrieves relevant context and generates a response.
+- API tests must mock the dependency the endpoint actually calls.
+- Mocked automated tests and manual integration tests verify different aspects of a system.
+- Three successful manual requests provide useful initial evidence, but they do not prove that every possible request will work.
+- `git diff` helps review implementation changes, while `git diff --check` checks for common whitespace mistakes.
+- A working implementation should be documented and committed only after the changes and tests have been reviewed.
+
+### Current architecture
+
+The integrated request flow is:
+
+```text
+Employee Question
+       |
+       v
+FastAPI POST /ask
+       |
+       v
+ask_agent(question)
+       |
+       v
+LangChain Agent
+       |
+       v
+Decide Whether to Call a Tool
+       |
+       v
+search_company_docs
+       |
+       v
+Existing RAGPipeline
+       |
+       v
+Retrieved Information and RAG-Generated Answer
+       |
+       v
+Agent Final Response
+       |
+       v
+FastAPI Response
+```
+
+For a vague question, the agent can ask for clarification without calling the search tool.
+
+### Current limitation
+
+The tool currently calls `RAGPipeline.ask()`, which performs both retrieval and answer generation. The agent then uses the tool result to produce its own final response.
+
+This preserves the existing tested RAG pipeline but may involve an additional generation step. We will evaluate whether a retrieval-only tool would be a better design before changing it.
+
+Dedicated automated tests for agent decisions and tool calls have not yet been added.
+
+### Git status
+
+The source changes have been reviewed locally, and the test suite passes. The implementation and documentation updates for this milestone still need final review, staging, committing, and pushing to GitHub.
+
+---
+
 ## Git and GitHub Workflow
 
 ### Objective
@@ -618,22 +788,25 @@ Track implementation changes and publish the project to GitHub.
 ### What I implemented
 
 - Reviewed `.gitignore` and verified that `.env` and `data/vector_store/` are excluded.
-- Reviewed the intended source and dependency changes before staging.
-- Staged the intended files.
-- Created commits and pushed project changes to GitHub.
+- Reviewed intended source and dependency changes before staging.
+- Staged selected files, created commits, and pushed project changes to GitHub.
+- Reviewed the latest local source changes before preparing the current integration milestone.
 
 ### Repository
 
 https://github.com/rajpatel-09/NovaDesk-AI
 
-### Important commits
+### Important existing commits
 
 - `0f71f8d` — `feat: build core RAG pipeline and knowledge base`
 - `6c078f0` — `test: add automated API endpoint tests`
 - `1789145` — `perf: initialize RAG pipeline lazily`
 - `b634858` — `feat: add agent and relevance filtering`
+- `3b23a17` — `docs: update project documentation`
 
-The latest recorded commit, `b634858`, was successfully pushed to `origin/main`.
+The previously recorded commits were successfully pushed to `origin/main`.
+
+The latest Agentic AI/FastAPI integration changes have been tested locally but still need to be committed and pushed as a new milestone.
 
 ### Security lesson
 
@@ -658,26 +831,21 @@ Implemented:
 
 ### Phase 2 — FastAPI
 
-**Status: Core implementation completed; improvements ongoing.**
+**Status: Core implementation completed; agent integration verified.**
 
 Implemented and tested:
 
 - `GET /health` and `POST /ask`.
-- Integration with the existing RAG pipeline.
 - Pydantic request validation.
 - Error handling and logging.
-- Lazy initialization and caching of the RAG pipeline.
-- Five automated API tests, all passing at the latest recorded run.
-
-Development server:
-
-```powershell
-uv run uvicorn src.api.main:app --reload
-```
+- Lazy initialization and caching.
+- Five automated API tests, all passing at the latest verified run.
+- Integration of `POST /ask` with `ask_agent()`.
+- Manual verification of three scenarios through Swagger UI.
 
 ### Phase 3 — Agentic AI
 
-**Status: Initial implementation completed; further development ongoing.**
+**Status: Initial implementation and FastAPI integration completed; further development ongoing.**
 
 Implemented and manually tested:
 
@@ -686,8 +854,10 @@ Implemented and manually tested:
 - Tool usage for relevant VPN troubleshooting questions.
 - Clarification of vague requests without calling the tool.
 - Fallback handling for unsupported questions.
+- Integration with the FastAPI `/ask` endpoint.
+- Successful API behavior for the three documented manual scenarios.
 
-Remaining work includes automated agent tests, broader behavior evaluation, and integration into FastAPI.
+Remaining work includes automated agent tests, wider behavior evaluation, and possible architecture improvements.
 
 ### Phase 4 — LangGraph
 
@@ -709,20 +879,20 @@ Remaining work includes automated agent tests, broader behavior evaluation, and 
 - Becoming more confident with Git and GitHub.
 - Evaluating retrieval relevance using a wider range of questions.
 - Writing automated tests for retrieval and agent behavior.
-- Integrating the agent with FastAPI.
+- Understanding trade-offs between agent tools and RAG pipelines.
 - Improving error handling, configuration, and production readiness.
 
 I do not need to memorize every line of code immediately. My goal is to understand why the code exists, explain its logic, and gradually implement parts independently.
 
 ## Immediate Next Steps
 
-1. Complete and verify the project documentation.
-2. Update `README.md` to reflect the current architecture, setup instructions, and implemented features.
-3. Run relevant checks and review the documentation changes.
-4. Commit and push the documentation updates to GitHub.
-5. Add automated tests for agent behavior, including tool calls, vague requests, and unsupported questions.
-6. Integrate the agent into FastAPI where appropriate.
+1. Finish updating and reviewing `README.md`, `PROJECT_CONTEXT.md`, and `LEARNING_LOG.md`.
+2. Run the automated API tests and `git diff --check`.
+3. Review the final source-code and documentation changes.
+4. Stage, commit, and push the verified integration milestone to GitHub.
+5. Add automated tests for agent behavior and tool invocation.
+6. Evaluate whether `search_company_docs` should return document passages directly rather than a complete RAG-generated answer.
 7. Continue with LangGraph, then MCP.
 8. Improve testing, configuration, reliability, and security incrementally.
 
-Continue developing one step at a time. Preserve the working RAG foundation, understand why each change is needed, test meaningful changes, and document each milestone.
+Continue developing in manageable batches. Preserve the working RAG foundation, understand why each change is needed, test meaningful changes, and document each milestone.
