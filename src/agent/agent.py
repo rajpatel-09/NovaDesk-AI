@@ -30,4 +30,5 @@ def ask_agent(question: str) -> str:
         {"messages": [{"role": "user", "content": question}]}
     )
 
+    # Select the final message instead of returning the full message history.
     return result["messages"][-1].content
