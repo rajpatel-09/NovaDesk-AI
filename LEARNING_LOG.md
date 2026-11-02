@@ -324,4 +324,101 @@ The project should continue with a practical, beginner-friendly approach:
 
 ---
 
-**End of learning log.**
+## Phase 3 — Agentic AI: Automated Agent Evaluation
+
+**Date:** November 2, 2026
+
+### 1. Created an Evaluation Dataset
+
+Created:
+
+`evaluation/agent_eval_cases.json`
+
+Added three evaluation scenarios:
+
+- Company-policy question.
+- Vague employee question.
+- Unsupported company-policy question.
+
+Each case defines the expected tool, behavior, source (where applicable), and expected answer keyword.
+
+### 2. Built the Evaluation Script
+
+Created:
+
+`scripts/evaluate_agent.py`
+
+Implemented functionality to:
+
+- Load evaluation cases from a JSON file.
+- Invoke the actual Groq-powered agent.
+- Inspect messages and tool calls.
+- Compare actual tool selection with expected tool selection.
+- Check retrieved source documents when specified.
+- Check whether expected keywords appear in final answers.
+- Print individual case results and an overall evaluation summary.
+
+### 3. Learned New Python Concepts
+
+Practised the following concepts while building the evaluator:
+
+- `json.load()` for reading JSON data.
+- `pathlib.Path` for locating project files.
+- `__file__` for referencing the current Python script.
+- `getattr()` for safely accessing object attributes.
+- List iteration and dictionary access.
+- Conditional checks and boolean results.
+- Counting passing evaluation cases.
+- Calculating an evaluation success percentage.
+
+### 4. Practical Evaluation Results
+
+Executed all three scenarios using the actual LLM-powered agent.
+
+| Scenario | Result |
+|---|---|
+| Company-policy question | Passed |
+| Vague question | Passed |
+| Unsupported policy question | Passed |
+
+**Latest evaluation summary:**
+
+```text
+Total cases: 3
+Passed: 3
+Failed: 0
+Success rate: 100.0%
+```
+
+### 5. Important Learning
+
+During the first evaluation run, the vague-question scenario failed because the script expected the exact phrase "Can you tell me", while the agent responded with "Could you let me know".
+
+The agent's behavior was appropriate, but the strict keyword comparison produced a false failure.
+
+Updated the expected keyword to match the observed answer.
+
+Learned that exact keyword matching cannot reliably determine whether two answers have the same meaning.
+
+### 6. Full Project Verification
+
+Reran the complete pytest suite after implementing the evaluation system.
+
+**Latest result:**
+
+```text
+8 passed in 3.92s
+```
+
+All five API tests and all three agent unit tests passed.
+
+### 7. Current Limitations
+
+- Only three evaluation scenarios are currently available.
+- Answer evaluation uses keyword matching rather than semantic evaluation.
+- A passing evaluation does not guarantee that every future LLM response will be correct.
+- More scenarios and stronger evaluation methods are required.
+
+### Next Objective
+
+Improve the evaluation system with more realistic test scenarios and stronger answer-quality checks, then continue the remaining Agentic AI learning and implementation.

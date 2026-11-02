@@ -1,0 +1,25 @@
+[
+  {
+    "case_id": "company_policy_question",
+    "question": "How many casual leave days do employees get?",
+    "expected_tool": "search_company_docs",
+    "expected_behavior": "Retrieve the HR leave policy and answer that employees receive 12 casual leave days per calendar year.",
+    "expected_source": "leave_policy.txt",
+    "expected_answer_contains": "12 days of casual leave"
+  },
+  {
+    "case_id": "vague_question",
+    "question": "It does not work. Help me.",
+    "expected_tool": null,
+    "expected_behavior": "Ask the employee for clarification without calling the search tool.",
+    "expected_source": null,
+    "expected_answer_contains": "specific issue"},
+  {
+    "case_id": "unsupported_policy_question",
+    "question": "Does NovaTech Solutions reimburse employees for FIFA World Cup tickets?",
+    "expected_tool": "search_company_docs",
+    "expected_behavior": "Search company documents and state that relevant information could not be found. Do not invent a reimbursement policy.",
+    "expected_source": null,
+    "expected_answer_contains": "I could not find relevant information"
+  }
+]

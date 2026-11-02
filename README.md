@@ -50,6 +50,45 @@ The goal is to build a practical helpdesk application while learning how to deve
 
 **Latest recorded test result:** 8 tests passed.
 
+## Agent Evaluation
+
+NovaDesk-AI includes a basic evaluation system for testing the behavior of the real LLM-powered agent.
+
+### Evaluation Dataset
+
+File: `evaluation/agent_eval_cases.json`
+
+Contains test scenarios with expected tool selection, behavior, source documents, and answer keywords.
+
+### Evaluation Script
+
+File: `scripts/evaluate_agent.py`
+
+The script:
+
+- Loads evaluation cases from the JSON dataset.
+- Sends questions to the real AI agent.
+- Checks which tools were selected.
+- Checks whether expected source documents were retrieved.
+- Checks whether expected keywords appear in the final answer.
+- Generates an evaluation summary.
+
+### Run Agent Evaluation
+
+```powershell
+uv run python -m scripts.evaluate_agent
+```
+
+### Latest Evaluation Result
+
+- Total scenarios: 3
+- Passed: 3
+- Failed: 0
+- Success rate: 100%
+
+**Note:** This is an initial evaluation system based on tool selection, source matching, and keyword checks. Passing these three scenarios does not guarantee overall agent reliability or semantic correctness.
+
+
 ## Technology Stack
 
 | Component | Technology |

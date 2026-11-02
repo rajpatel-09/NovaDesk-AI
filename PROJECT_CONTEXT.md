@@ -226,7 +226,70 @@ These are manual checks, not a guarantee that every possible question will be an
 
 ## 8. Phase 3 — Agentic AI
 
-**Status: Initial implementation exists; learning and testing are ongoing**
+### Agent Evaluation System
+
+**Status: Initial evaluation system implemented**
+
+Created an evaluation dataset and Python script to evaluate the behavior of the actual LLM-powered agent.
+
+**Files created:**
+
+```text
+evaluation/
+└── agent_eval_cases.json
+
+scripts/
+└── evaluate_agent.py
+```
+
+**Evaluation dataset:**
+
+`evaluation/agent_eval_cases.json` contains three scenarios:
+
+1. Company-policy question — expects `search_company_docs` and the HR leave-policy source.
+2. Vague question — expects clarification without calling a tool.
+3. Unsupported policy question — expects document search and a fallback response without inventing company information.
+
+**Evaluation script:**
+
+`scripts/evaluate_agent.py` performs the following operations:
+
+- Loads evaluation cases from JSON.
+- Invokes the actual configured agent.
+- Inspects tool calls.
+- Checks expected source documents when specified.
+- Checks expected answer keywords.
+- Prints a summary of passing and failing cases.
+
+**Run the evaluation:**
+
+```powershell
+uv run python -m scripts.evaluate_agent
+```
+
+**Latest evaluation result:**
+
+```text
+Total cases: 3
+Passed: 3
+Failed: 0
+Success rate: 100.0%
+```
+
+**Limitations:**
+
+- The initial evaluator uses keyword matching, not semantic answer evaluation.
+- A correct answer with different wording can produce a false failure.
+- Three passing scenarios do not establish overall agent reliability.
+- More evaluation scenarios and stronger answer-quality checks are needed.
+
+**Latest full automated test result:**
+
+```text
+8 passed in 3.92s
+```
+
+The evaluation script and pytest suite serve different purposes: the evaluation script checks actual agent behavior, while the unit tests verify individual code components using controlled dependencies.
 
 ### `src/agent/tools.py`
 
