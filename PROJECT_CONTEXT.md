@@ -1,10 +1,11 @@
 # NovaDesk-AI — Project Context
 
-**Last updated:** October 29, 2026
+**Last updated:** November 2, 2026
 **Project:** NovaDesk-AI — AI IT Helpdesk Copilot
 **Repository:** https://github.com/rajpatel-09/NovaDesk-AI.git
+**Current branch:** `main`
 **Current learning phase:** Phase 3 — Agentic AI
-**Current focus:** Finish documentation, review the current changes, then understand `tests/test_agent.py` line by line.
+**Internship completion target:** November 18, 2026
 
 ---
 
@@ -12,32 +13,47 @@
 
 NovaDesk-AI is an AI-powered IT helpdesk assistant that answers employee questions using internal company documentation.
 
-The project is being developed as an internship learning project with the goal of building practical, maintainable AI application skills.
+The project combines:
 
-The planned learning sequence is:
+- Retrieval-Augmented Generation (RAG).
+- Agentic AI with tool calling.
+- FastAPI backend.
+- ChromaDB vector storage.
+- Automated unit testing.
+- Real-agent evaluation.
 
-1. Retrieval-Augmented Generation (RAG)
-2. FastAPI
-3. Agentic AI
-4. LangGraph
-5. Model Context Protocol (MCP)
-6. Production improvements and project finishing
+The objective is to build a practical AI helpdesk application while developing industry-oriented skills in AI application development.
 
-**Important:** Phase 1 and the core Phase 2 implementation are complete. Phase 3 implementation has started, but understanding and verification are still in progress. Do not treat Phase 3 as mastered or completed.
+### Planned Learning Sequence
+
+1. Retrieval-Augmented Generation (RAG).
+2. FastAPI.
+3. Agentic AI.
+4. LangGraph.
+5. Model Context Protocol (MCP).
+6. Production improvements and project finishing.
+
+**Important:** Phase 1 and the core Phase 2 implementation are complete. Phase 3 implementation is ongoing. The user is still developing a deeper understanding of Agentic AI concepts and implementation. Do not treat Phase 3 as mastered or completed.
 
 ## 2. Development Environment
 
-**Project directory**
+**Project directory:**
 
 ```text
 C:\Users\Lenovo\OneDrive\Desktop\NovaDesk-AI
 ```
 
-**Python:** 3.12
-**Package manager:** uv
-**Git branch:** `main`
+**Environment details:**
 
-The project uses an external uv environment because of earlier environment and package-linking issues on Windows.
+- Python: 3.12.10
+- Package manager: uv
+- Git branch: `main`
+- Operating system: Windows
+- LLM provider: Groq
+
+The project uses an external uv environment because of earlier Windows and package-linking issues.
+
+### Configure the environment
 
 At the beginning of each new VS Code PowerShell terminal, run:
 
@@ -45,17 +61,17 @@ At the beginning of each new VS Code PowerShell terminal, run:
 $env:UV_PROJECT_ENVIRONMENT = "$env:LOCALAPPDATA\uv-envs\novadesk-ai"
 ```
 
-Run Python and tests through uv so the correct environment is used.
+Use `uv run` to execute project commands through the configured environment.
 
-**Run the full test suite:**
+### Run the full test suite
 
 ```powershell
 uv run python -m pytest -v
 ```
 
-Use `python -m pytest` rather than plain `pytest` because it correctly handles the project's module import path in this setup.
+Use `python -m pytest` rather than plain `pytest` to handle the project's module import path correctly in the current setup.
 
-**Start the API:**
+### Start the FastAPI application
 
 ```powershell
 uv run uvicorn src.api.main:app --reload
@@ -71,23 +87,31 @@ http://127.0.0.1:8000/docs
 
 | Area | Technology |
 |---|---|
-| Language | Python |
-| Dependencies and environment | uv |
-| LLM | Groq via LangChain |
-| Agent | LangChain `create_agent` |
-| Embeddings | `sentence-transformers/all-MiniLM-L6-v2` |
+| Programming language | Python 3.12 |
+| Dependency management | uv |
+| LLM provider | Groq |
+| LLM integration | LangChain |
+| Agent framework | LangChain `create_agent` |
+| LLM model | `openai/gpt-oss-20b` |
+| Embeddings | Sentence Transformers |
+| Embedding model | `sentence-transformers/all-MiniLM-L6-v2` |
 | Vector database | ChromaDB |
-| API | FastAPI |
+| Retrieval metric | Cosine distance |
+| API framework | FastAPI |
 | Validation | Pydantic |
-| Automated tests | pytest |
+| Automated testing | pytest |
+| Evaluation dataset | JSON |
 
-The LLM has been configured using the Groq model `openai/gpt-oss-20b` through `ChatGroq`.
+Installed versions verified in the configured environment:
 
-The `.env` file contains the Groq API key and must never be committed to Git.
+- ChromaDB: `1.5.9`
+- LangChain Chroma: `1.1.0`
 
-## 4. Current Architecture
+The `.env` file contains the Groq API key. Never commit this file or expose API credentials.
 
-The core application flow is:
+## 4. Current Application Architecture
+
+The main application flow is:
 
 ```text
 Employee question
@@ -99,31 +123,37 @@ FastAPI POST /ask
 ask_agent(question)
        |
        v
-LangChain agent
+LangChain AI Agent
        |
        v
 search_company_docs tool
        |
        v
-RAG pipeline
+RAG Pipeline
        |
        v
-Retrieve relevant document chunks
+CompanyRetriever
        |
        v
-Generate answer with source information
+ChromaDB cosine collection
        |
        v
-Tool result returned to agent
+Relevant document chunks
        |
        v
-Final agent answer
+AnswerGenerator
        |
        v
-API response
+Tool result with sources
+       |
+       v
+AI Agent generates final answer
+       |
+       v
+FastAPI response
 ```
 
-The agent can also ask the user a clarifying question when the request is vague and a company-document search is unnecessary.
+The agent can also ask a clarifying question when an employee's request is vague and a company-document search is unnecessary.
 
 ## 5. Current Project Structure
 
@@ -138,22 +168,39 @@ NovaDesk-AI/
 │   │   │   └── software_installation_policy.txt
 │   │   └── SECURITY/
 │   │       └── password_security_policy.txt
+│   │
 │   └── vector_store/
+│
+├── evaluation/
+│   └── agent_eval_cases.json
+│
+├── scripts/
+│   └── evaluate_agent.py
+│
 ├── src/
 │   ├── agent/
 │   │   ├── agent.py
 │   │   └── tools.py
+│   │
 │   ├── api/
 │   │   └── main.py
+│   │
 │   ├── ingestion/
-│   │   └── loader.py
+│   │   ├── embeddings.py
+│   │   ├── loader.py
+│   │   ├── pipeline.py
+│   │   ├── retriever.py
+│   │   └── vectorstore.py
+│   │
 │   └── rag/
 │       ├── generator.py
 │       ├── pipeline.py
 │       └── retriever.py
+│
 ├── tests/
 │   ├── test_api.py
 │   └── test_agent.py
+│
 ├── .env
 ├── .gitignore
 ├── pyproject.toml
@@ -163,9 +210,9 @@ NovaDesk-AI/
 └── LEARNING_LOG.md
 ```
 
-This is a working representation of the structure. Other project files may exist as development continues.
+The project structure may evolve as additional features are implemented.
 
-## 6. Phase 1 — RAG
+## 6. Phase 1 — Retrieval-Augmented Generation (RAG)
 
 **Status: Core implementation complete**
 
@@ -173,129 +220,227 @@ The RAG implementation includes:
 
 - Loading company `.txt` documents.
 - Splitting documents into chunks.
-- Creating embeddings using Sentence Transformers.
-- Storing and retrieving vectors with ChromaDB.
-- Retrieving the top three chunks for a question.
-- Applying a relevance threshold to filter weak matches.
-- Generating answers using the retrieved context.
-- Returning source information.
-- Using a fallback response when relevant information is unavailable.
+- Generating embeddings using Sentence Transformers.
+- Storing document embeddings in ChromaDB.
+- Retrieving the top three relevant chunks.
+- Applying a relevance-score threshold.
+- Generating answers using retrieved context.
+- Returning source document information.
+- Using a fallback response when relevant information cannot be found.
 
-The ChromaDB collection is named `novadesk_docs`. The persisted vector store is located in `data/vector_store/`.
+### Knowledge Base
 
-The RAG implementation is accessed through `RAGPipeline`, which combines retrieval and answer generation.
+The current knowledge base contains four synthetic company documents:
 
-The fallback response used by the pipeline is:
+1. HR leave policy.
+2. IT VPN troubleshooting.
+3. IT software installation policy.
+4. Security password policy.
+
+The latest verified knowledge base contains 11 document chunks.
+
+### RAG Architecture
+
+**Embedding creation:**
+
+File: `src/ingestion/embeddings.py`
+
+Uses:
+
+`sentence-transformers/all-MiniLM-L6-v2`
+
+**Document loading:**
+
+File: `src/ingestion/loader.py`
+
+Loads company documents from the knowledge-base directory.
+
+**Document ingestion:**
+
+File: `src/ingestion/pipeline.py`
+
+Coordinates document loading, chunking, embedding creation, and vector-store creation.
+
+**Vector storage:**
+
+File: `src/ingestion/vectorstore.py`
+
+Creates the ChromaDB collection and stores document chunks.
+
+**Document retrieval:**
+
+File: `src/ingestion/retriever.py`
+
+Connects to the persisted ChromaDB collection and configures the retriever.
+
+**RAG pipeline:**
+
+File: `src/rag/pipeline.py`
+
+Combines retrieval and answer generation.
+
+**Fallback response:**
 
 ```text
 I could not find relevant information in the company documents.
 ```
 
-### Company knowledge base
+## 7. ChromaDB Relevance-Score Investigation and Cosine Migration
 
-The current synthetic knowledge base covers:
+**Status: New cosine collection implemented and manually verified**
 
-- HR leave policy.
-- VPN troubleshooting.
-- Software installation policy.
-- Password security policy.
+### Original problem
 
-The knowledge base previously contained four documents and eleven chunks. These counts should be rechecked if documents or chunking settings change.
+The original ChromaDB collection was:
 
-## 7. Phase 2 — FastAPI
+`novadesk_docs`
 
-**Status: Core API implementation and tests complete**
+Its distance metric was:
 
-The API currently includes:
+`l2`
 
-- `GET /health` for a health check.
+During real-agent evaluation, LangChain displayed a warning:
+
+```text
+UserWarning: Relevance scores must be between 0 and 1
+```
+
+One retrieved document produced a negative relevance score:
+
+```text
+-0.09705684145467686
+```
+
+### Investigation
+
+Inspected the installed ChromaDB and LangChain implementations.
+
+The original collection used L2 distance, while LangChain selected its default Euclidean relevance-score conversion.
+
+The default conversion was:
+
+```python
+return 1.0 - distance / math.sqrt(2)
+```
+
+This conversion assumes Euclidean distances from normalized embeddings. ChromaDB's L2 configuration uses squared Euclidean distance, which can produce scores outside the expected range.
+
+### Solution
+
+Created a separate cosine-based collection:
+
+`novadesk_docs_cosine`
+
+Updated:
+
+**File:** `src/ingestion/vectorstore.py`
+
+The vector-store initialization now specifies:
+
+```python
+vectorstore = Chroma(
+    persist_directory="data/vector_store",
+    collection_name="novadesk_docs_cosine",
+    embedding_function=embeddings,
+    collection_configuration={
+        "hnsw": {"space": "cosine"}
+    },
+)
+```
+
+**File:** `src/ingestion/retriever.py`
+
+The retriever now connects to the cosine collection and uses a custom relevance-score conversion:
+
+```python
+def cosine_relevance_score(distance: float) -> float:
+    """Convert cosine distance into a score between 0 and 1."""
+
+    return max(0.0, min(1.0, 1.0 - distance))
+```
+
+The retriever uses:
+
+```python
+return vectorstore.as_retriever(
+    search_type="similarity_score_threshold",
+    search_kwargs={"score_threshold": 0.25},
+)
+```
+
+### Current collection configuration
+
+| Setting | Value |
+|---|---|
+| Original collection | `novadesk_docs` |
+| Original metric | L2 |
+| New collection | `novadesk_docs_cosine` |
+| New metric | Cosine |
+| Persist directory | `data/vector_store` |
+| Document chunks in new collection | 11 |
+| Relevance threshold | 0.25 |
+| Number of retrieved chunks | Top 3 |
+
+The original L2 collection has been preserved as a backup.
+
+### Direct retrieval verification
+
+The following results were observed when querying the new cosine collection:
+
+| Question | Best relevance score | Chunks passing threshold |
+|---|---:|---:|
+| Casual leave policy | 0.591 | 3 |
+| Software installation policy | 0.651 | 2 |
+| FIFA reimbursement | 0.074 | 0 |
+
+The software question also retrieved an unrelated security chunk with a score of `0.177`, which was filtered out by the `0.25` threshold.
+
+The unsupported FIFA question returned zero chunks above the threshold.
+
+No negative relevance-score warning was observed in the latest cosine retrieval and agent-evaluation runs.
+
+**Important:** Relevance scores are similarity indicators, not percentages of answer correctness. The custom conversion and threshold still need broader validation with additional queries.
+
+## 8. Phase 2 — FastAPI
+
+**Status: Core implementation and API tests complete**
+
+The FastAPI backend includes:
+
+- `GET /health` for checking API availability.
 - `POST /ask` for employee questions.
 - Pydantic request validation.
 - Basic logging and error handling.
 - Integration with `ask_agent()`.
+- Interactive Swagger UI testing.
+- Automated API tests.
 
-The `/ask` endpoint uses the agent rather than calling the RAG pipeline directly.
+The `/ask` endpoint calls the agent instead of directly calling the RAG pipeline.
 
-Swagger UI was used to manually verify the main behaviors:
+### Manual API verification
 
-- A casual leave question returned the documented allowance of 12 days per year.
+Using Swagger UI, the following scenarios were tested:
+
+- Casual leave question returned the documented 12-day allowance.
 - A vague question prompted the assistant to ask for clarification.
-- An unsupported question about FIFA did not result in an invented company policy.
+- An unsupported FIFA-related question did not result in an invented reimbursement policy.
 
-These are manual checks, not a guarantee that every possible question will be answered correctly.
+These are manual checks, not a guarantee of correct behavior for every possible question.
 
-## 8. Phase 3 — Agentic AI
+## 9. Phase 3 — Agentic AI
 
-### Agent Evaluation System
-
-**Status: Initial evaluation system implemented**
-
-Created an evaluation dataset and Python script to evaluate the behavior of the actual LLM-powered agent.
-
-**Files created:**
-
-```text
-evaluation/
-└── agent_eval_cases.json
-
-scripts/
-└── evaluate_agent.py
-```
-
-**Evaluation dataset:**
-
-`evaluation/agent_eval_cases.json` contains three scenarios:
-
-1. Company-policy question — expects `search_company_docs` and the HR leave-policy source.
-2. Vague question — expects clarification without calling a tool.
-3. Unsupported policy question — expects document search and a fallback response without inventing company information.
-
-**Evaluation script:**
-
-`scripts/evaluate_agent.py` performs the following operations:
-
-- Loads evaluation cases from JSON.
-- Invokes the actual configured agent.
-- Inspects tool calls.
-- Checks expected source documents when specified.
-- Checks expected answer keywords.
-- Prints a summary of passing and failing cases.
-
-**Run the evaluation:**
-
-```powershell
-uv run python -m scripts.evaluate_agent
-```
-
-**Latest evaluation result:**
-
-```text
-Total cases: 3
-Passed: 3
-Failed: 0
-Success rate: 100.0%
-```
-
-**Limitations:**
-
-- The initial evaluator uses keyword matching, not semantic answer evaluation.
-- A correct answer with different wording can produce a false failure.
-- Three passing scenarios do not establish overall agent reliability.
-- More evaluation scenarios and stronger answer-quality checks are needed.
-
-**Latest full automated test result:**
-
-```text
-8 passed in 3.92s
-```
-
-The evaluation script and pytest suite serve different purposes: the evaluation script checks actual agent behavior, while the unit tests verify individual code components using controlled dependencies.
+**Status: Initial implementation complete; learning and improvement ongoing**
 
 ### `src/agent/tools.py`
 
-The `search_company_docs` tool is exposed through LangChain's `@tool` decorator.
+Contains the `search_company_docs` tool.
 
-Its responsibility is to pass the supplied question to the cached RAG pipeline and return the result.
+The tool:
+
+- Uses LangChain's `@tool` decorator.
+- Makes the Python function available to the agent.
+- Passes the question to the existing RAG pipeline.
+- Returns the RAG result to the agent.
 
 Conceptually:
 
@@ -309,39 +454,41 @@ search_company_docs(question)
 get_rag_pipeline().ask(question)
        |
        v
-Answer and sources from RAG
+RAG answer and sources
 ```
 
 ### `src/agent/agent.py`
 
-The agent implementation includes:
+Contains the agent implementation.
 
-- `create_agent` to configure the LangChain agent.
+It uses:
+
+- LangChain's `create_agent`.
 - `AnswerGenerator().llm` as the model.
 - `search_company_docs` as an available tool.
-- A system prompt defining the assistant's role and answer boundaries.
-- `@lru_cache(maxsize=1)` on `get_agent()` to reuse the configured agent.
+- A system prompt defining the assistant's behavior.
+- `@lru_cache(maxsize=1)` to reuse the configured agent.
 - `ask_agent(question)` to invoke the agent and extract the final message content.
 
-The system prompt instructs the agent to:
+The system prompt instructs NovaDesk to:
 
-- Behave as NovaDesk, an IT helpdesk assistant.
+- Act as an IT helpdesk assistant.
 - Use company-document search for policy and procedure questions.
-- Ask a concise clarifying question when the request is too vague.
-- Use company facts supported by the tool results.
-- Avoid inventing an answer when the documentation does not provide the required information.
+- Ask concise clarifying questions for vague requests.
+- Use facts supported by the tool results.
+- Avoid inventing company information when relevant documentation is unavailable.
 
-### Concepts already explored
+### Concepts explored
 
 The following behaviors have been manually examined:
 
 1. A VPN question caused the agent to request `search_company_docs`.
-2. The tool result was returned to the agent.
-3. The agent then produced a final answer.
-4. A vague question such as “It does not work. Help me.” resulted in a clarifying question without a tool call.
-5. A direct call to `search_company_docs.invoke(...)` returned the RAG pipeline's result.
+2. The search tool returned the RAG result.
+3. The agent generated a final answer.
+4. A vague question resulted in clarification without a tool call.
+5. A direct `search_company_docs.invoke(...)` call returned the RAG result.
 
-The tool-calling message sequence was observed as:
+The observed tool-calling message sequence was:
 
 ```text
 HumanMessage
@@ -356,110 +503,301 @@ ToolMessage with tool result
 Final AIMessage
 ```
 
-These experiments provide a practical starting point, but the implementation must still be understood and reviewed carefully.
+The agent has been manually tested with actual Groq calls, not only mocked unit tests.
 
-## 9. Agent Tests
+## 10. Agent Unit Tests
 
 **Test file:** `tests/test_agent.py`
 
-Three tests have been added:
+Three unit tests are implemented.
 
-1. `test_search_company_docs_uses_rag_pipeline`
-   - Checks that the search tool passes the expected question to the RAG pipeline and returns its answer.
+### Test 1 — `test_search_company_docs_uses_rag_pipeline`
 
-2. `test_ask_agent_returns_final_answer`
-   - Checks that `ask_agent()` invokes the configured agent with the expected payload and returns the final answer content.
+Verifies that:
 
-3. `test_get_agent_reuses_configured_agent`
-   - Checks agent configuration, verifies that the model and tool are supplied, checks important system-prompt instructions, and verifies that the cached agent is reused.
+- The search tool passes the correct question to the RAG pipeline.
+- The expected answer is returned.
 
-The tests use `monkeypatch`, fake objects, and `SimpleNamespace` to isolate behavior. They do not require live model calls to test these specific code paths.
+Uses a fake RAG pipeline and monkeypatching to isolate the search tool.
 
-**Important learning task:** The user has not yet understood this test file line by line. Do not skip directly to adding more tests or moving to LangGraph. After documentation is finished and the current changes are committed, teach `tests/test_agent.py` from the beginning, explaining each import, function, fixture-like use of `monkeypatch`, fake object, assertion, and the reason for each test. Show how the test connects to the actual production code.
+### Test 2 — `test_ask_agent_returns_final_answer`
 
-## 10. Latest Test Status
+Verifies that:
 
-The latest recorded full test run was:
+- `ask_agent()` passes the expected input to the configured agent.
+- The final answer content is extracted and returned.
+
+Uses a fake agent and a simulated `invoke()` response.
+
+### Test 3 — `test_get_agent_reuses_configured_agent`
+
+Verifies that:
+
+- The correct LLM is supplied.
+- The company-document search tool is included.
+- Important system-prompt instructions are present.
+- The configured agent is created only once and reused.
+
+Uses fake dependencies, `**kwargs`, `create_calls`, and cache clearing.
+
+### Testing concepts learned
+
+- Software testing and unit testing.
+- Pytest test discovery and fixtures.
+- `monkeypatch`.
+- Fake objects and fake dependencies.
+- `SimpleNamespace`.
+- `assert`.
+- `lambda`.
+- `try...finally`.
+- `@lru_cache`.
+- `.cache_clear()`.
+- Object identity using `is`.
+
+The user has completed a detailed walkthrough of the file and can explain the purpose of its three tests.
+
+The user has also added explanatory comments to the test file as personal learning notes.
+
+**Limitation:** Passing mocked unit tests does not prove that a real LLM will always choose the correct tool or follow every system-prompt instruction.
+
+## 11. Agent Evaluation System
+
+**Status: Initial evaluation system implemented; four scenarios passing**
+
+Created an evaluation dataset and Python script to test the actual LLM-powered agent.
+
+### Evaluation files
 
 ```text
-8 passed in 2.68s
+evaluation/
+└── agent_eval_cases.json
+
+scripts/
+└── evaluate_agent.py
 ```
 
-This comprised five API tests and three agent tests.
+### Evaluation dataset
 
-The agent test command is:
+File:
+
+`evaluation/agent_eval_cases.json`
+
+The dataset currently contains four scenarios:
+
+1. Company leave-policy question.
+2. Vague employee question.
+3. Unsupported FIFA reimbursement question.
+4. Software installation approval question.
+
+Each evaluation case contains:
+
+- `case_id`: Unique scenario identifier.
+- `question`: Employee question.
+- `expected_tool`: Expected tool selection, or `null` when no tool should be called.
+- `expected_behavior`: Description of the intended behavior.
+- `expected_source`: Expected source document, when applicable.
+- `expected_answer_contains_any`: Multiple acceptable answer phrases.
+
+### Evaluation script
+
+File:
+
+`scripts/evaluate_agent.py`
+
+The script:
+
+1. Loads evaluation cases from JSON.
+2. Gets the configured agent.
+3. Sends each question to the actual agent.
+4. Collects tool calls.
+5. Checks whether the expected tool was selected.
+6. Inspects tool results for expected source documents.
+7. Extracts the final answer.
+8. Checks whether at least one acceptable phrase appears in the answer.
+9. Prints individual scenario results.
+10. Produces an overall evaluation summary.
+
+### Run agent evaluation
+
+```powershell
+uv run python -m scripts.evaluate_agent
+```
+
+### Latest recorded evaluation result
+
+```text
+Total cases: 4
+Passed: 4
+Failed: 0
+Success rate: 100.0%
+```
+
+All four scenarios passed after switching the retrieval system to the cosine collection.
+
+### Important evaluation limitation
+
+The script uses exact substring matching with multiple acceptable phrases.
+
+It is more flexible than checking only one exact phrase, but it does not understand semantic meaning.
+
+For example, a correct answer with different wording may still fail if none of the configured phrases appears.
+
+The evaluation system is an initial repeatable evaluation framework, not a complete AI quality or safety evaluation system.
+
+Four passing scenarios do not establish overall agent reliability.
+
+## 12. Latest Automated Test Status
+
+The latest recorded complete pytest run after the cosine migration was:
+
+```text
+8 passed in 2.96s
+```
+
+Breakdown:
+
+| Test file | Tests |
+|---|---:|
+| `tests/test_api.py` | 5 |
+| `tests/test_agent.py` | 3 |
+| **Total** | **8** |
+
+Run the complete suite:
+
+```powershell
+uv run python -m pytest -v
+```
+
+Run only the agent tests:
 
 ```powershell
 uv run python -m pytest tests/test_agent.py -v
 ```
 
-The API test command is:
+Run only the API tests:
 
 ```powershell
 uv run python -m pytest tests/test_api.py -v
 ```
 
-The full suite should be rerun after any further code changes.
+The complete suite must be rerun after further changes.
 
-## 11. Git and Pending Changes
+## 13. Git and GitHub Status
 
-**Repository:** https://github.com/rajpatel-09/NovaDesk-AI.git
+**Repository:**
+
+https://github.com/rajpatel-09/NovaDesk-AI.git
+
 **Branch:** `main`
 
-The latest previously recorded pushed commit was `be13377` (`feat: integrate agent with FastAPI`).
+### Latest previously pushed commit
 
-At the latest review, the intended remaining code changes were:
+```text
+b37230d
+feat: add automated agent evaluation system
+```
 
-- `src/agent/agent.py` — an explanatory comment documenting final-answer extraction.
-- `tests/test_agent.py` — the three new agent tests.
+This commit includes:
 
-The documentation is also being updated. Since local files may have changed during this process, verify the actual state with:
+- Updated README and project documentation.
+- Initial evaluation dataset.
+- Evaluation script.
+- Agent-test learning comments.
+
+### Changes made after that commit
+
+The following implementation improvements were made after the latest pushed commit:
+
+- Expanded the evaluation dataset from three to four scenarios.
+- Added multiple acceptable answer phrases.
+- Updated answer-match reporting in `scripts/evaluate_agent.py`.
+- Created `novadesk_docs_cosine`.
+- Updated `src/ingestion/vectorstore.py`.
+- Updated `src/ingestion/retriever.py`.
+- Added custom cosine relevance-score conversion.
+- Rebuilt and manually verified the 11-chunk cosine collection.
+- Evaluated all four real-agent scenarios successfully.
+- Updated documentation is currently being prepared.
+
+**Important:** These changes have not yet been confirmed as committed or pushed. Verify the actual working-tree state before staging or committing.
+
+Check using:
 
 ```powershell
 git status --short
 ```
 
-Do not assume the listed files are still the complete set of changes.
+Never assume the working tree is clean or that the listed files are the complete set of changes.
 
 Before committing:
 
-1. Check that the documentation is saved.
-2. Run the full test suite.
-3. Inspect the changes using `git diff` and `git diff --check`.
-4. Stage only the intended files.
-5. Commit and push only after reviewing the staged changes.
+1. Save all documentation.
+2. Run the full pytest suite.
+3. Run the four-scenario agent evaluation.
+4. Run `git diff --check`.
+5. Review the changed files.
+6. Stage only intended files.
+7. Review the staged changes.
+8. Commit and push to `main`.
 
-Do not discard user changes simply to make the working tree clean.
+The original L2 collection must be preserved until the cosine migration is fully verified and the backup is no longer needed.
 
-## 12. Current Tasks — In Order
+## 14. Current Limitations and Pending Improvements
 
-1. Finish replacing and saving `README.md`.
-2. Finish replacing and saving `PROJECT_CONTEXT.md`.
-3. Update `LEARNING_LOG.md` with the recently completed learning and testing work.
-4. Review the modified and untracked files.
-5. Run all eight tests again and confirm the output.
-6. Commit and push the reviewed milestone.
-7. Begin a careful, line-by-line walkthrough of `tests/test_agent.py`.
-8. Only after the user understands the current test code, continue further Agentic AI learning and implementation.
+- The evaluation dataset currently contains only four scenarios.
+- Answer evaluation uses keyword matching rather than semantic evaluation.
+- The relevance threshold of `0.25` needs broader testing with more representative questions.
+- Retrieval quality should be evaluated with more HR, IT, security, and unsupported questions.
+- Real LLM output may vary across runs.
+- The cosine conversion has been manually verified on current scenarios but needs broader validation.
+- The original L2 collection remains as a backup.
+- Hugging Face Hub may display an unauthenticated-request warning. The embedding model has loaded successfully in the latest recorded runs.
+- Production-level security, monitoring, and reliability improvements are still pending.
 
-## 13. Learning and Mentoring Instructions
+## 15. Current Tasks — In Order
 
-The user is a beginner in Agentic AI and is building this project to gain practical, industry-oriented skills.
+1. Finish replacing and saving `README.md`, `PROJECT_CONTEXT.md`, and `LEARNING_LOG.md` with consistent, up-to-date information.
+2. Review the actual changes using `git status --short`.
+3. Rerun the complete test suite.
+4. Rerun all four agent evaluation cases.
+5. Review and commit the cosine migration and evaluation improvements.
+6. Continue essential Agentic AI learning and implementation.
+7. Learn and integrate LangGraph.
+8. Learn and integrate MCP.
+9. Improve final testing, error handling, documentation, and project presentation.
+10. Complete the internship project by November 18, 2026.
+
+Do not move to LangGraph or MCP until the necessary Agentic AI concepts and current implementation have been sufficiently understood.
+
+## 16. Learning and Mentoring Instructions
+
+The user is a beginner in Agentic AI and is building NovaDesk-AI to gain practical, industry-oriented skills.
+
+The remaining internship time is limited, with a target completion date of November 18, 2026.
 
 When continuing this project:
 
-- Explain **why** a concept or code change is needed before showing the implementation.
-- Inspect and explain the existing code before replacing or extending it.
-- Use realistic examples from NovaDesk-AI.
-- Explain Python, LangChain, testing, and Git concepts in beginner-friendly terms.
-- Combine a few related small tasks when appropriate, but do not overwhelm the user with a large batch of changes.
-- Prefer a single combined checkpoint over frequent confirmation questions.
-- Clearly state where commands must be run: VS Code PowerShell terminal or another location.
-- Do not imply that the user has mastered code just because it runs or tests pass.
+- Explain why a concept or code change is needed before showing the implementation.
+- Connect explanations directly to the actual NovaDesk-AI files.
+- Use realistic examples from the project.
+- Explain Python, LangChain, testing, and Git concepts in beginner-friendly language.
+- Move efficiently and combine two or three related concepts when appropriate.
+- Avoid lengthy theoretical explanations that are not needed for implementation.
+- Prefer practical experiments and real project improvements.
+- Clearly specify where commands should be run, especially VS Code PowerShell.
+- Use a combined understanding checkpoint rather than repeated confirmation questions.
+- Do not assume the user understands a concept simply because the code runs.
+- Help the user prepare to explain important implementation decisions to their internship mentor.
 - Remind the user to update `README.md`, `PROJECT_CONTEXT.md`, and `LEARNING_LOG.md` after meaningful milestones.
 
-**Next learning objective:** Understand the three tests in `tests/test_agent.py` line by line, after completing the documentation and Git milestone.
+The user prefers free and open-source technologies and does not want paid subscriptions for the project.
+
+### Next learning objective
+
+Complete the cosine migration documentation, review and push the pending changes, then continue improving the real-agent evaluation system.
+
+After the current Agentic AI work is sufficiently understood, prioritize LangGraph, MCP, and final project preparation before the November 18 deadline.
 
 ---
 
-**End of project context.**
+**End of Project Context.**

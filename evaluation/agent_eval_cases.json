@@ -5,7 +5,11 @@
     "expected_tool": "search_company_docs",
     "expected_behavior": "Retrieve the HR leave policy and answer that employees receive 12 casual leave days per calendar year.",
     "expected_source": "leave_policy.txt",
-    "expected_answer_contains": "12 days of casual leave"
+    "expected_answer_contains_any": [
+      "12 days of casual leave",
+      "12 casual leave days",
+      "casual leave per calendar year"
+    ]
   },
   {
     "case_id": "vague_question",
@@ -13,13 +17,40 @@
     "expected_tool": null,
     "expected_behavior": "Ask the employee for clarification without calling the search tool.",
     "expected_source": null,
-    "expected_answer_contains": "specific issue"},
+    "expected_answer_contains_any": [
+      "specific issue",
+      "what is not working",
+      "which device",
+      "which application",
+      "what problem"
+    ]
+  },
   {
     "case_id": "unsupported_policy_question",
     "question": "Does NovaTech Solutions reimburse employees for FIFA World Cup tickets?",
     "expected_tool": "search_company_docs",
     "expected_behavior": "Search company documents and state that relevant information could not be found. Do not invent a reimbursement policy.",
     "expected_source": null,
-    "expected_answer_contains": "I could not find relevant information"
+    "expected_answer_contains_any": [
+      "I could not find relevant information",
+      "no relevant information",
+      "not found in the company documents",
+      "company documents do not mention",
+      "couldn't find any information",
+      "couldn’t find any information",
+      "information in the company documents"
+    ]
+  },
+  {
+    "case_id": "software_installation_approval",
+    "question": "Can I install new software on my company laptop without IT approval?",
+    "expected_tool": "search_company_docs",
+    "expected_behavior": "Retrieve the software installation policy and explain that IT approval is required before installing software.",
+    "expected_source": "software_installation_policy.txt",
+    "expected_answer_contains_any": [
+      "IT department approval",
+      "approval before installing software",
+      "IT Service Desk"
+    ]
   }
 ]

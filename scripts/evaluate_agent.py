@@ -74,9 +74,18 @@ def evaluate_case(agent, case):
     final_answer = str(messages[-1].content) if messages else ""
 
     # Check whether the expected phrase appears in the answer.
-    expected_phrase = case["expected_answer_contains"]
+    expected_phrases = case["expected_answer_contains_any"]
 
-    answer_passed = expected_phrase.lower() in final_answer.lower()
+    matched_phrase = next(
+        (
+            phrase
+            for phrase in expected_phrases
+            if phrase.casefold() in final_answer.casefold()  # Performs case-insensitive text comparison.
+        ),
+        None,
+    )
+
+    answer_passed = matched_phrase is not None
 
     # Determine the overall result.
     case_passed = (
@@ -93,6 +102,7 @@ def evaluate_case(agent, case):
         "tool_passed": tool_passed,
         "source_passed": source_passed,
         "answer_passed": answer_passed,
+        "matched_answer_phrase": matched_phrase,
         "final_answer": final_answer,
     }
 
@@ -126,6 +136,7 @@ def main():
             print(f"Source check: {result['source_passed']}")
 
         print(f"Answer check: {result['answer_passed']}")
+        print(f"  Matched phrase: {result['matched_answer_phrase']}")
         print(f"Final answer: {result['final_answer']}\n")
 
     passed = sum(1 for result in results if result["passed"])

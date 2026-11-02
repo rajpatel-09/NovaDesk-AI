@@ -3,8 +3,11 @@ from langchain_chroma import Chroma
 def create_vectorstore(documents, embeddings):
     vectorstore = Chroma(
         persist_directory="data/vector_store",
-        collection_name="novadesk_docs",
+        collection_name="novadesk_docs_cosine",
         embedding_function=embeddings,
+        collection_configuration={
+            "hnsw": {"space": "cosine"}
+        },
     )
 
     # Find the source files already stored in ChromaDB.
@@ -28,26 +31,3 @@ def create_vectorstore(documents, embeddings):
         vectorstore.add_documents(new_documents)
 
     return vectorstore
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
